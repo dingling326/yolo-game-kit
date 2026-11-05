@@ -14,7 +14,7 @@
 | | `web/index.html`（大廳）、`web/cards/print.html`（列印圖卡） |
 | **開發** | `web/games/<遊戲>/game.js`（遊戲規則、判斷、計分、難度） |
 | | `web/common/pose.js`、`web/common/ui.js` |
-| | `pose_service/`（Python：辨識、LLM、紀錄）、`tests/` |
+| | `pose_service/`（Python：辨識、LLM、紀錄）、`tools/`（訓練模型）、`tests/` |
 | | `cards.json`、`config.json`、`robot_actions.json`、`requirements.txt` |
 
 - 盡量只改自己負責的檔案，**兩個人改同一個檔案才會衝突**
@@ -40,7 +40,7 @@
 
 | 遊戲 | game.js 用到的 id | game.js 會切換的 class |
 |---|---|---|
-| `card-quiz` 圖卡問答 | `task` `pic` `en` `task-card` `hold` `seen` `done` `wrong` `clock` `best` `start` `skip` | `#task-card.flash`、`#big.good`、`#big.bad` |
+| `card-quiz` 圖卡問答（長輩版） | `progress` `task` `pic` `clue` `task-card` `hold` `seen` `start` `repeat` `skip` `count` `deck` `setup` `summary` `results` | `#task-card.flash`、`#task-card.hinting`、`#big.good`、`#big.soft`；`#deck` 裡的 `button.off`；`#results` 裡的 `li.skipped` |
 | `raise-hand` 舉手挑戰 | `task` `task-card` `hold` `score` `best` `time` `time-text` `start` | `#task-card.flash` |
 | `bubble-pop` 戳泡泡 | `task` `hold` `score` `best` `time` `time-text` `start` | |
 | `rps` 猜拳 | `task` `hold` `seen` `you` `bot` `you-pts` `bot-pts` `result` `history` `start` | `#result.win`、`#result.lose`；`#history` 裡的 `span.w`、`span.l` |

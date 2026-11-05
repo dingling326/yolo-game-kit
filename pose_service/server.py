@@ -28,6 +28,7 @@ from aiohttp import web
 from . import config, hands, keypoints
 from .cards import CardDetector, DemoCards, load_cards, marker_png
 from .detector import DemoPose, YoloPose
+from .objects import CombinedCards, YoloObjects
 from .robot import MockRobot, RobotGuard, RobotRefused, make_robot
 from .sources import open_source
 
@@ -288,6 +289,14 @@ def main(argv=None):
         raise SystemExit(f"讀不到圖卡清單 cards.json：{e}")
     demo = source.kind == "demo"
     modules = {"cards": DemoCards(card_list) if demo else CardDetector(card_list)}
+    if cfg.get("objects_model") and not demo:
+        try:
+            yolo = YoloObjects(cfg["objects_model"], card_list, conf=cfg["objects_conf"], device=cfg["device"])
+            modules["cards"] = CombinedCards(modules["cards"], yolo)
+            if yolo.missing:
+                notice = (notice + "；" if notice else "") + f"模型的類別在 cards.json 找不到（要加 en）：{'、'.join(yolo.missing)}"
+        except Exception as e:
+            notice = (notice + "；" if notice else "") + f"自訂物件模型載入失敗：{e}"
     if cfg["hands"]:
         try:
             modules["hands"] = hands.DemoHands() if demo else hands.HandDetector(max_hands=cfg["max_hands"])

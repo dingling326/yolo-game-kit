@@ -1,5 +1,6 @@
 # Python 虛擬環境（每個人自己跑 setup 產生，不要上傳）
 .venv/
+.venv-train/
 __pycache__/
 *.pyc
 
