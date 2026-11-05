@@ -1,11 +1,32 @@
 /* card-quiz 這個遊戲自己的樣式（UI 負責）。共用的樣式在 /common/style.css */
 
-.target { display: flex; align-items: center; gap: 14px; }
-.target .pic { font-size: 64px; line-height: 1; }
-.target .en { color: var(--muted); font-size: 15px; }
-.seen { font-size: 18px; font-weight: 700; }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
-.stats b { display: block; font-size: 28px; font-variant-numeric: tabular-nums; }
-.stats span { color: var(--muted); font-size: 13px; }
+.target { display: flex; align-items: center; gap: 18px; }
+.target .pic { font-size: 96px; line-height: 1; }
+.target .task { word-break: keep-all; }
+.clue { margin: 8px 0 4px; font-size: 20px; color: var(--muted); min-height: 1.4em; }
+.seen { font-size: 24px; font-weight: 700; }
+
+/* 給提示時：提示文字加底色、變明顯 */
+#task-card.hinting .clue { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-radius: 10px; padding: 6px 10px; }
+#task-card.hinting .clue { color: var(--text); font-weight: 700; }
+
+/* 答對、答錯的大字：答錯不用紅色，用溫和的顏色，不讓長輩有挫折感 */
 .big.good { color: #3fcf8e; }
-.big.bad { color: #ff8a80; }
+.big.soft { color: #ffd166; }
+
+/* 結束後的紀錄 */
+.results { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; font-size: 18px; }
+.results .skipped { color: var(--muted); }
+
+/* 照服員設定（平常收起來，不干擾長輩） */
+.setup summary { cursor: pointer; font-size: 18px; color: var(--muted); }
+.setup-row { align-items: center; gap: 10px; margin: 10px 0; white-space: nowrap; }
+.setup-row .btn { margin-left: auto; font-size: 18px; padding: 10px 14px; }
+.deck { display: flex; flex-wrap: wrap; gap: 8px; }
+.deck button {
+  font: inherit; font-size: 18px; padding: 6px 10px; border-radius: 10px; cursor: pointer;
+  border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--text);
+}
+.deck button.off { border-color: var(--line); background: var(--surface); color: var(--muted); text-decoration: line-through; }
+
+[hidden] { display: none !important; }
