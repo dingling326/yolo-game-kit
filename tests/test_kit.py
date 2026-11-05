@@ -76,11 +76,12 @@ class CardTest(unittest.TestCase):
         return cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
     def test_recognises_tilted_card(self):
-        cards = load_cards()
+        cards = load_cards()                  # 用 cards.json 裡真的有的卡，換了圖卡清單也能測
+        card = cards[min(2, len(cards) - 1)]
         det = CardDetector(cards)
-        found = det.detect(self.photo_of(2))
-        self.assertEqual([c["id"] for c in found], [2])
-        self.assertEqual(found[0]["name"], cards[2]["name"])
+        found = det.detect(self.photo_of(card["id"]))
+        self.assertEqual([c["id"] for c in found], [card["id"]])
+        self.assertEqual(found[0]["name"], card["name"])
         self.assertAlmostEqual(found[0]["center"][0], 0.5, delta=0.03)
         self.assertEqual(len(found[0]["corners"]), 4)
 
@@ -90,11 +91,13 @@ class CardTest(unittest.TestCase):
         self.assertEqual(CardDetector(load_cards()).detect(self.photo_of(unknown)), [])
 
     def test_nearest_card_first(self):
-        det = CardDetector(load_cards())
-        frame = self.photo_of(3, at=(160, 240), size=90)
-        frame = np.minimum(frame, self.photo_of(5, at=(470, 240), size=160))   # 兩張卡在同一張照片
+        cards = load_cards()
+        far, near = cards[0]["id"], cards[1]["id"]
+        det = CardDetector(cards)
+        frame = self.photo_of(far, at=(160, 240), size=90)
+        frame = np.minimum(frame, self.photo_of(near, at=(470, 240), size=160))   # 兩張卡在同一張照片
         found = det.detect(frame)
-        self.assertEqual([c["id"] for c in found], [5, 3])
+        self.assertEqual([c["id"] for c in found], [near, far])
 
     def test_demo_cards(self):
         demo = DemoCards(load_cards())

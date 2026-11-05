@@ -14,7 +14,7 @@
 | | `web/index.html`（大廳）、`web/cards/print.html`（列印圖卡） |
 | **開發** | `web/games/<遊戲>/game.js`（遊戲規則、判斷、計分、難度） |
 | | `web/common/pose.js`、`web/common/ui.js` |
-| | `pose_service/`（Python：辨識、LLM、紀錄）、`tests/` |
+| | `pose_service/`（Python：辨識、LLM、紀錄）、`tools/`（訓練模型）、`tests/` |
 | | `cards.json`、`config.json`、`robot_actions.json`、`requirements.txt` |
 
 - 盡量只改自己負責的檔案，**兩個人改同一個檔案才會衝突**

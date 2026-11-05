@@ -1,9 +1,9 @@
-// 圖卡問答（長輩版）：機器人說「請拿出貓」，長輩把貓的圖卡拿給鏡頭看，拿穩 1.2 秒就判斷。
+// 圖卡問答（長輩版）：機器人說「請拿出牙刷」，長輩把牙刷的圖卡拿給鏡頭看，拿穩 1.2 秒就判斷。
 //
 // 和原本學生版不一樣的地方（給長輩用要注意的事）：
 //   · 不計時、不比快、不顯示「拿錯幾次」：沒有輸贏，只有「完成」
 //   · 拿穩的時間從 0.6 秒加長到 1.2 秒：長輩的手比較會晃，也需要時間對準
-//   · 拿錯不說「錯」，而是「這是狗，我們要找的是貓，再找找看」；拿錯 2 次就給提示（cards.json 的 hint）
+//   · 拿錯不說「錯」，而是「這是錢包，我們要找的是牙刷，再找找看」；拿錯 2 次就給提示（cards.json 的 hint）
 //   · 20 秒沒有動作：先把題目再說一次；再 20 秒：給提示。照服員也可以按「跳過這題」
 //   · 「再說一次」按鈕：長輩忘記題目時可以重聽
 //   · 照服員設定：題數、桌上放了哪些卡（只從這些卡出題，例如一開始只放 3 張，比較簡單）
@@ -47,7 +47,8 @@ const begin = new Steady(BEGIN_MS);
 let deck = new Set(CARDS.map((c) => c.id));
 try {
   const saved = JSON.parse(localStorage.getItem('card-quiz-deck'));
-  if (Array.isArray(saved) && saved.length) deck = new Set(saved.filter((id) => CARDS.some((c) => c.id === id)));
+  const kept = Array.isArray(saved) ? saved.filter((id) => CARDS.some((c) => c.id === id)) : [];
+  if (kept.length) deck = new Set(kept);      // cards.json 換過、存的卡都不在了：就用全部的卡
 } catch {}
 
 function renderDeck() {

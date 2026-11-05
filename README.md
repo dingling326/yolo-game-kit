@@ -202,6 +202,24 @@ import { connect, createStage, point, distance, isHandUp, mainPerson, Hold,
 
 ---
 
+## 自己訓練的物件模型（不用黑白方塊）
+
+圖卡上沒有黑白方塊、或想直接認桌上的實物（牛奶、牙刷…），可以自己訓練 YOLO 模型：
+
+1. 用 Roboflow 標註照片，匯出 **YOLOv8／YOLO11** 格式，解壓到 `datasets/<名稱>/`（這個資料夾不會上傳 GitHub）
+2. 訓練（要另外的環境 `.venv-train`，安裝方法寫在 `tools/train_objects.py` 最上面）：
+   ```
+   .venv-train\Scripts\python.exe tools	rain_objects.py datasets\<名稱>\data.yaml --name cards
+   ```
+   做完會產生 `models/cards-yolo11n.onnx`
+3. `cards.json` 加上每個類別，`en` 要跟模型的類別名稱一樣：`{"id": 12, "name": "雞蛋", "en": "egg", "emoji": "🥚"}`
+4. `config.json` 加上 `"objects_model": "models/cards-yolo11n.onnx"`，重開伺服器
+
+認到的東西會跟黑白方塊圖卡一起放在 `msg.cards`（格式一樣，多了 `box`、`score`、`"source": "yolo"`），
+所以「圖卡問答」不用改就能用。黑白方塊的圖卡也還是認得到。
+
+---
+
 ## 設定（config.json）
 
 | 設定 | 預設 | 說明 |
@@ -214,6 +232,8 @@ import { connect, createStage, point, distance, isHandUp, mainPerson, Hold,
 | `device` | `"auto"` | `auto`：有顯示卡就用；`cpu`：只用 CPU |
 | `hands` | `true` | 手部辨識（手指、手勢）；不需要時改 `false`，每秒可以多跑幾張 |
 | `max_hands` | `2` | 最多認幾隻手 |
+| `objects_model` | `null` | 自己訓練的 YOLO 物件模型（例如 `"models/cards-yolo11n.onnx"`），認沒有黑白方塊的圖卡或實物。見下面「自己訓練的物件模型」 |
+| `objects_conf` | `0.5` | 物件的信心分數低於這個就不算；常常認錯就調高 |
 | `port` | `8800` | 網頁的連接埠 |
 
 改完 `config.json`、`cards.json`、`robot_actions.json` 都要**重開伺服器**。

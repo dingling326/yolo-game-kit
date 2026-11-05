@@ -19,6 +19,8 @@ DEFAULTS = {
     "device": "auto",          # auto：有顯示卡就用；cpu：強制用 CPU
     "hands": True,             # 手部辨識（手指、手勢）。不需要時關掉，每秒可以多跑幾張
     "max_hands": 2,
+    "objects_model": None,     # 自己訓練的 YOLO 物件模型（例如 "models/cards-yolo11n.onnx"）。null＝不用
+    "objects_conf": 0.5,       # 物件的信心分數低於這個就不算；常常認錯就調高
     "show_video": True,        # false：隱私模式，網頁只看得到骨架和圖卡框，伺服器不送出影像
     "robot": {"mode": "mock", "gateway": "http://127.0.0.1:8080", "robot_id": "zenbo-01"},
 }
@@ -52,4 +54,7 @@ def load(argv=None):
     cfg["robot"]["token"] = os.environ.get("ROBOT_TOKEN", "")
     model = Path(cfg["model"])
     cfg["model"] = str(model if model.is_absolute() else ROOT / model)
+    if cfg.get("objects_model"):
+        om = Path(cfg["objects_model"])
+        cfg["objects_model"] = str(om if om.is_absolute() else ROOT / om)
     return cfg

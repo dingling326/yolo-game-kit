@@ -1,16 +1,9 @@
 {
   "cards": [
-    {"id": 0,  "name": "蘋果", "en": "apple",    "emoji": "🍎", "hint": "紅紅的、圓圓的水果，咬起來脆脆的"},
-    {"id": 1,  "name": "香蕉", "en": "banana",   "emoji": "🍌", "hint": "黃色、彎彎長長的水果，要剝皮吃"},
-    {"id": 2,  "name": "貓",   "en": "cat",      "emoji": "🐱", "hint": "會喵喵叫的小動物"},
-    {"id": 3,  "name": "狗",   "en": "dog",      "emoji": "🐶", "hint": "會汪汪叫、幫忙看家的動物"},
-    {"id": 4,  "name": "魚",   "en": "fish",     "emoji": "🐟", "hint": "住在水裡、會游泳的"},
-    {"id": 5,  "name": "鳥",   "en": "bird",     "emoji": "🐦", "hint": "有翅膀、會在天上飛的"},
-    {"id": 6,  "name": "汽車", "en": "car",      "emoji": "🚗", "hint": "有四個輪子，在馬路上跑的"},
-    {"id": 7,  "name": "雨傘", "en": "umbrella", "emoji": "☂️", "hint": "下雨天出門要帶的"},
-    {"id": 8,  "name": "太陽", "en": "sun",      "emoji": "☀️", "hint": "白天掛在天上，亮亮的、熱熱的"},
-    {"id": 9,  "name": "花",   "en": "flower",   "emoji": "🌸", "hint": "香香的、顏色很漂亮，種在花園裡"},
-    {"id": 10, "name": "書",   "en": "book",     "emoji": "📖", "hint": "一頁一頁，可以拿來讀的"},
-    {"id": 11, "name": "杯子", "en": "cup",      "emoji": "☕", "hint": "裝水、喝茶用的"}
+    {"id": 0, "name": "雞蛋", "en": "egg",        "emoji": "🥚", "hint": "早餐常吃，可以煎、可以煮"},
+    {"id": 1, "name": "藥盒", "en": "pillbox",    "emoji": "💊", "hint": "一格一格的，裝每天要吃的藥"},
+    {"id": 2, "name": "牙刷", "en": "toothbrush", "emoji": "🪥", "hint": "早上起床、晚上睡覺前刷牙用的"},
+    {"id": 3, "name": "青菜", "en": "vegetable",  "emoji": "🥬", "hint": "綠色的，炒來配飯吃"},
+    {"id": 4, "name": "錢包", "en": "wallet",     "emoji": "👛", "hint": "出門買東西，用來裝錢的"}
   ]
 }

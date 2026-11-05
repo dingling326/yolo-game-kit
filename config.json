@@ -13,6 +13,8 @@
   "device": "auto",
   "hands": true,
   "max_hands": 2,
+  "objects_model": "models/cards-yolo11n.onnx",
+  "objects_conf": 0.35,
 
   "show_video": true,
 
