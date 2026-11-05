@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的遊戲</title>
+<link rel="stylesheet" href="/common/style.css">
+</head>
+<body>
+<main class="game">
+  <!-- 左邊：攝影機畫面＋骨架（createStage 會放進來） -->
+  <section id="stage">
+    <div class="overlay"><div class="big" id="big"></div></div>
+  </section>
+
+  <!-- 右邊：分數、說明、機器人。想加什麼就加在這裡 -->
+  <aside class="panel">
+    <div class="card">
+      <h2>次數</h2>
+      <div class="score" id="count">0</div>
+      <div class="muted">雙手舉高、再放下，算一次。</div>
+    </div>
+    <div class="card">
+      <h2>手腕的位置（除錯用）</h2>
+      <div class="muted" id="debug">—</div>
+    </div>
+    <button class="btn secondary" id="reset">歸零</button>
+    <div class="card" id="robot"></div>
+  </aside>
+</main>
+<script type="module" src="game.js"></script>
+</body>
+</html>

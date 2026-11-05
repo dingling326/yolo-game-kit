@@ -1,0 +1,30 @@
+{
+  // Ctrl+Shift+P → Tasks: Run Task
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1. 安裝環境（第一次）",
+      "type": "shell",
+      "windows": { "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/setup.ps1\"" },
+      "command": "sh \"${workspaceFolder}/setup.sh\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "2. 啟動",
+      "type": "shell",
+      "windows": { "command": "${workspaceFolder}/.venv/Scripts/python.exe -m pose_service" },
+      "command": "${workspaceFolder}/.venv/bin/python -m pose_service",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "3. 跑測試",
+      "type": "shell",
+      "windows": { "command": "${workspaceFolder}/.venv/Scripts/python.exe -m unittest discover -s tests -v" },
+      "command": "${workspaceFolder}/.venv/bin/python -m unittest discover -s tests -v",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}

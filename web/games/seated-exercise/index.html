@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>跟 Zenbo 做體操</title>
+<link rel="stylesheet" href="/common/style.css">
+</head>
+<body class="elder">
+<main class="game">
+  <section id="stage">
+    <div class="overlay"><div class="big" id="big"></div></div>
+    <div class="hint" id="hint">請坐在鏡頭前面中間</div>
+  </section>
+
+  <aside class="panel">
+    <div class="card" id="task-card">
+      <h2 id="phase">準備</h2>
+      <div class="task" id="task">按「開始」，或舉起一隻手 2 秒</div>
+      <div class="bar"><i id="hold" style="width: 0%"></i></div>
+      <div class="muted" id="sub"></div>
+    </div>
+
+    <div class="card">
+      <h2>今天的體操</h2>
+      <ol class="steps" id="steps"></ol>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="start">開始</button>
+      <button class="btn secondary" id="skip" disabled>跳過這個動作</button>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;">難度</h2>
+        <select id="level">
+          <option value="0.7">輕鬆</option>
+          <option value="0.8" selected>標準</option>
+          <option value="0.9">進階</option>
+        </select>
+      </div>
+      <div class="muted">目標＝暖身時量到的最高角度 × 7～9 成</div>
+    </div>
+
+    <div class="card" id="robot"></div>
+  </aside>
+</main>
+<script type="module" src="game.js"></script>
+</body>
+</html>

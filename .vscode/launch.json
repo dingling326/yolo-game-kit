@@ -1,0 +1,31 @@
+{
+  // F5 啟動。上面的下拉選單可以換：有攝影機／示範模式（沒有攝影機）
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "啟動（自動：有攝影機就用）",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pose_service",
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "windows": { "python": "${workspaceFolder}/.venv/Scripts/python.exe" },
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "serverReadyAction": { "pattern": "(http://127\\.0\\.0\\.1:[0-9]+)", "uriFormat": "%s", "action": "openExternally" }
+    },
+    {
+      "name": "示範模式（沒有攝影機）",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pose_service",
+      "args": ["--source", "demo"],
+      "cwd": "${workspaceFolder}",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "windows": { "python": "${workspaceFolder}/.venv/Scripts/python.exe" },
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "serverReadyAction": { "pattern": "(http://127\\.0\\.0\\.1:[0-9]+)", "uriFormat": "%s", "action": "openExternally" }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Python 虛擬環境（每個人自己跑 setup 產生，不要上傳）
+.venv/
+__pycache__/
+*.pyc
+
+# 金鑰、密碼（LLM API key 之後放這裡，絕對不要上傳）
+.env
+
+# 長者的訓練紀錄（個資，不要上傳）
+data/
+
+# YOLO 訓練產生的大檔案
+runs/
+datasets/
+*.pt
+
+# 系統檔
+.DS_Store
+Thumbs.db

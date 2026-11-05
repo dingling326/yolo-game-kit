@@ -1,0 +1,8 @@
+# 執行需要的套件（不需要 PyTorch，姿勢模型已經轉成 ONNX）
+aiohttp>=3.9
+numpy>=1.24
+# 用 contrib 版（含 ArUco，也是 mediapipe 需要的）；不要同時裝 opencv-python，兩個會互相蓋掉
+opencv-contrib-python>=4.8
+onnxruntime>=1.17
+# 手部辨識（手指、手勢）
+mediapipe>=0.10.20

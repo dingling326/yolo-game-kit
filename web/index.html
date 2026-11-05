@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YOLO 體感遊戲</title>
+<link rel="stylesheet" href="/common/style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>YOLO 體感遊戲工作坊</h1>
+  <div class="chips">
+    <span class="chip" id="c-src">影像</span>
+    <span class="chip" id="c-det">辨識</span>
+    <span class="chip" id="c-robot">機器人</span>
+  </div>
+</header>
+<div class="notice" id="notice" hidden></div>
+
+<main class="lobby">
+  <section class="intro">
+    <div class="card">
+      <h2>這是什麼</h2>
+      <p>攝影機拍到你，YOLO 找出你身上 17 個關節的位置，遊戲就用這些位置來判斷你的動作。</p>
+      <p>也認得<b>圖卡</b>：卡片上印一個黑白方塊，拿給鏡頭看就知道是哪一張。<a href="/cards/print.html">🖨 列印圖卡</a></p>
+      <p class="muted">想自己做遊戲：複製 <code>web/games/_template</code> 資料夾、改名字，大廳就會多一張卡片。詳細步驟看 README.md。</p>
+    </div>
+    <div id="preview"></div>
+  </section>
+
+  <h2>遊戲</h2>
+  <div class="grid" id="games"></div>
+
+  <h2>給你改的範本</h2>
+  <div class="grid" id="templates"></div>
+</main>
+
+<script type="module">
+import { connect, createStage } from '/common/pose.js';
+
+const stage = createStage(document.querySelector('#preview'));
+connect({ onPose: (people) => stage.draw(people) });
+
+const chip = (id, text, state) => {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'chip ' + (state || '');
+};
+
+const status = await (await fetch('/api/status')).json();
+chip('c-src', status.source, status.source_kind === 'demo' ? 'warn' : 'ok');
+chip('c-det', status.detector, 'ok');
+chip('c-robot', status.robot_mode === 'mock' ? '模擬機器人' : status.robot, status.robot_mode === 'mock' ? '' : 'ok');
+if (status.notice) {
+  const n = document.getElementById('notice');
+  n.textContent = status.notice;
+  n.hidden = false;
+}
+
+const games = await (await fetch('/api/games')).json();
+for (const g of games) {
+  const a = document.createElement('a');
+  a.className = 'game-card' + (g.template ? ' template' : '');
+  a.href = g.url;
+  a.innerHTML = `<div class="icon"></div><h3></h3><p></p><div class="meta"></div>`;
+  a.querySelector('.icon').textContent = g.icon || '🎮';
+  a.querySelector('h3').textContent = g.title || g.id;
+  a.querySelector('p').textContent = g.description || '';
+  a.querySelector('.meta').textContent = [g.author && `作者：${g.author}`, `資料夾：${g.id}`].filter(Boolean).join('　');
+  document.getElementById(g.template ? 'templates' : 'games').append(a);
+}
+</script>
+</body>
+</html>

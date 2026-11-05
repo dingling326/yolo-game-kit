@@ -1,0 +1,16 @@
+{
+  "cards": [
+    {"id": 0,  "name": "蘋果", "en": "apple",    "emoji": "🍎"},
+    {"id": 1,  "name": "香蕉", "en": "banana",   "emoji": "🍌"},
+    {"id": 2,  "name": "貓",   "en": "cat",      "emoji": "🐱"},
+    {"id": 3,  "name": "狗",   "en": "dog",      "emoji": "🐶"},
+    {"id": 4,  "name": "魚",   "en": "fish",     "emoji": "🐟"},
+    {"id": 5,  "name": "鳥",   "en": "bird",     "emoji": "🐦"},
+    {"id": 6,  "name": "汽車", "en": "car",      "emoji": "🚗"},
+    {"id": 7,  "name": "雨傘", "en": "umbrella", "emoji": "☂️"},
+    {"id": 8,  "name": "太陽", "en": "sun",      "emoji": "☀️"},
+    {"id": 9,  "name": "花",   "en": "flower",   "emoji": "🌸"},
+    {"id": 10, "name": "書",   "en": "book",     "emoji": "📖"},
+    {"id": 11, "name": "杯子", "en": "cup",      "emoji": "☕"}
+  ]
+}

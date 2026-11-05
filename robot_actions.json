@@ -1,0 +1,18 @@
+{
+  "cooldown_s": 0.8,
+  "max_say_length": 100,
+  "skills": [
+    "gesture.nod",
+    "gesture.wave",
+    "gesture.shake",
+    "flow.bow",
+    "flow.thanks",
+    "flow.agree"
+  ],
+  "expressions": [
+    "default",
+    "happy",
+    "proud",
+    "expecting"
+  ]
+}

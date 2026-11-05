@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>列印圖卡</title>
+<link rel="stylesheet" href="/common/style.css">
+<style>
+  .tools { max-width: 900px; margin: 20px auto; padding: 0 20px; }
+  .tools ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); font-size: 14px; }
+  .tools .btn { width: auto; }
+
+  /* 圖卡：A4 一頁 6 張（2 欄 × 3 列），沿虛線剪 */
+  .sheet {
+    display: grid; grid-template-columns: repeat(2, 9cm); gap: 0; justify-content: center;
+    margin: 0 auto 40px;
+  }
+  .pcard {
+    width: 9cm; height: 9cm; padding: .5cm; background: #fff; color: #111;
+    border: 1px dashed #aaa; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .pcard .pic { font-size: 2.4cm; line-height: 1; margin-top: .1cm; }
+  .pcard .name { font-size: .75cm; font-weight: 800; }
+  .pcard .name small { font-size: .4cm; font-weight: 400; color: #555; margin-left: .2cm; }
+  .pcard img { width: 3.8cm; height: 3.8cm; image-rendering: pixelated; }
+  .pcard .id { font-size: .28cm; color: #888; }
+
+  @media print {
+    @page { size: A4; margin: 1cm; }
+    body { background: #fff; }
+    .topbar, .tools { display: none; }
+    .sheet { margin: 0; }
+    .pcard:nth-child(6n) { break-after: page; page-break-after: always; }
+  }
+  @media (max-width: 720px) {
+    .sheet { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="back" href="/">← 大廳</a>
+  <h1>列印圖卡</h1>
+</header>
+<section class="tools card">
+  <div class="row" style="align-items: center; justify-content: space-between; flex-wrap: wrap;">
+    <strong>每頁 6 張，沿虛線剪下</strong>
+    <button class="btn" onclick="window.print()">🖨 列印</button>
+  </div>
+  <ul>
+    <li>電腦認的是下面的<b>黑白方塊</b>，上面的圖是給人看的。方塊四周的白邊不要剪掉。</li>
+    <li>印在白紙上（厚一點的紙比較好拿），不要折到方塊、不要護貝（會反光）。</li>
+    <li>拿的時候手指捏在卡片邊緣，不要擋住方塊。離鏡頭 30 公分～1.5 公尺最好認。</li>
+    <li>要換圖卡：改專案裡的 <code>cards.json</code>（id 是方塊的號碼 0～49），改完重開伺服器。</li>
+  </ul>
+</section>
+<main class="sheet" id="sheet"></main>
+<script type="module">
+const cards = await (await fetch('/api/cards')).json();
+const sheet = document.getElementById('sheet');
+for (const c of cards) {
+  const el = document.createElement('div');
+  el.className = 'pcard';
+  el.innerHTML = `<div class="pic"></div><div class="name"><span></span><small></small></div>
+                  <img alt=""><div class="id"></div>`;
+  el.querySelector('.pic').textContent = c.emoji;
+  el.querySelector('.name span').textContent = c.name;
+  el.querySelector('.name small').textContent = c.en || '';
+  el.querySelector('img').src = `/api/cards/${c.id}/marker.png`;
+  el.querySelector('img').alt = `標記 ${c.id}`;
+  el.querySelector('.id').textContent = `#${c.id}`;
+  sheet.append(el);
+}
+</script>
+</body>
+</html>

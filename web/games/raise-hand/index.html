@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>舉手挑戰</title>
+<link rel="stylesheet" href="/common/style.css">
+</head>
+<body>
+<main class="game">
+  <section id="stage">
+    <div class="overlay"><div class="big" id="big"></div></div>
+    <div class="hint">黃點：這一題要看的關節</div>
+  </section>
+
+  <aside class="panel">
+    <div class="card" id="task-card">
+      <h2>現在要做</h2>
+      <div class="task" id="task">按「開始」，或雙手舉高 2 秒</div>
+      <div class="bar"><i id="hold"></i></div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content: space-between; align-items: end;">
+        <div><h2>分數</h2><div class="score" id="score">0</div></div>
+        <div style="text-align: right;"><h2>最高分</h2><div class="muted" id="best">—</div></div>
+      </div>
+      <div class="bar"><i id="time"></i></div>
+      <div class="muted" id="time-text">30 秒</div>
+    </div>
+    <button class="btn" id="start">開始</button>
+    <div class="card" id="robot"></div>
+  </aside>
+</main>
+<script type="module" src="game.js"></script>
+</body>
+</html>
