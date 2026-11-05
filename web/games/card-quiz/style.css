@@ -1,0 +1,11 @@
+/* card-quiz 這個遊戲自己的樣式（UI 負責）。共用的樣式在 /common/style.css */
+
+.target { display: flex; align-items: center; gap: 14px; }
+.target .pic { font-size: 64px; line-height: 1; }
+.target .en { color: var(--muted); font-size: 15px; }
+.seen { font-size: 18px; font-weight: 700; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.stats b { display: block; font-size: 28px; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 13px; }
+.big.good { color: #3fcf8e; }
+.big.bad { color: #ff8a80; }

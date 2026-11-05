@@ -1,0 +1,17 @@
+# PR 改到哪些檔案，GitHub 就自動請誰審核。後面的規則會蓋掉前面的。
+# UI 組員加入後：把下面「UI 負責」區塊裡的 @UI組員帳號 換成他的 GitHub 帳號（例如 @amy123），再把每行開頭的 # 拿掉。
+# 帳號一定要是這個專案的 Collaborator，否則 GitHub 會顯示錯誤。
+
+# 預設：開發負責
+*                          @dingling326
+
+# UI 負責
+# /web/**/*.html           @UI組員帳號
+# /web/**/*.css            @UI組員帳號
+
+# 遊戲邏輯一定是開發負責
+/web/**/*.js               @dingling326
+/pose_service/             @dingling326
+
+# 協作規則兩個人都要看過
+# /CONTRIBUTING.md         @dingling326 @UI組員帳號

@@ -1,0 +1,15 @@
+/* rps 這個遊戲自己的樣式（UI 負責）。共用的樣式在 /common/style.css */
+
+.duel { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; text-align: center; gap: 8px; }
+.duel .who { color: var(--muted); font-size: 14px; }
+.duel .hand { font-size: 56px; line-height: 1.2; min-height: 68px; }
+.duel .pts { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.duel .vs { color: var(--muted); font-weight: 700; }
+.result { text-align: center; font-size: 22px; font-weight: 800; min-height: 34px; margin-top: 6px; }
+.result.win { color: var(--good); }
+.result.lose { color: var(--bad); }
+.history { display: flex; gap: 6px; flex-wrap: wrap; min-height: 28px; font-size: 20px; }
+.history span { padding: 2px 8px; border-radius: 8px; background: var(--surface-2); font-size: 14px; }
+.history .w { background: color-mix(in srgb, var(--good) 25%, var(--surface)); }
+.history .l { background: color-mix(in srgb, var(--bad) 22%, var(--surface)); }
+.seen { font-size: 18px; font-weight: 700; }
