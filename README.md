@@ -159,7 +159,7 @@ msg.cards = [
 **換成你自己的圖卡**：改 `cards.json`，每張一行：`{"id": 12, "name": "火車", "en": "train", "emoji": "🚂"}`。
 `id` 是方塊的號碼（0～49，不能重複），改完**重開伺服器**，再重新列印。
 
-**用自己的圖片**：圖片放在 `web/cards/images/`（建議寬 704、高 384 的 jpg），在卡片加上 `"image": "/cards/images/檔名.jpg"`。
+**用自己的圖片**：圖片放在 `web/cards/images/`（建議用去背的 png 或 webp，最長邊 600 左右），在卡片加上 `"image": "/cards/images/檔名.webp"`。
 遊戲畫面和列印頁就會用圖片，不用 `emoji`。
 
 ---

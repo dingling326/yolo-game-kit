@@ -19,6 +19,7 @@
 import asyncio
 import json
 import logging
+import mimetypes
 import threading
 import time
 from types import SimpleNamespace
@@ -34,6 +35,13 @@ from .robot import MockRobot, RobotGuard, RobotRefused, make_robot
 from .sources import open_source
 
 log = logging.getLogger("pose_service")
+# Windows 的 Python 有時候不認得 webp，圖片會被當成一般檔案。aiohttp 新版有自己的一份對照表，兩邊都加
+mimetypes.add_type("image/webp", ".webp")
+try:
+    from aiohttp import web_fileresponse
+    web_fileresponse.CONTENT_TYPES.add_type("image/webp", ".webp")
+except (ImportError, AttributeError):
+    pass
 WEB = config.ROOT / "web"
 CTX = web.AppKey("ctx", SimpleNamespace)     # 伺服器的狀態：影像來源、辨識、機器人、hub
 

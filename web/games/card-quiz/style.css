@@ -7,9 +7,9 @@
 .clue { margin: 8px 0 4px; font-size: 20px; color: var(--muted); min-height: 1.4em; }
 .seen { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; min-height: 48px; }
 
-/* 卡片圖片（cards.json 的 image，比例 704×384） */
+/* 卡片圖片（cards.json 的 image，去背的圖案）：放在固定比例的框裡，整個圖案都看得到 */
 .big-img, .mem-img, .slot, .mark { aspect-ratio: 704 / 384; border-radius: 14px; }
-.big-img, .mem-img { display: block; object-fit: cover; min-width: 0; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
+.big-img, .mem-img { display: block; object-fit: contain; min-width: 0; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .18)); }
 .big-img { width: 100%; }
 .mem-img, .slot { flex: 1 1 0; min-width: 0; }
 /* 還沒拿出來的位置：虛線框＋第幾個 */
@@ -19,7 +19,7 @@
   color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
 .mark.done { color: var(--good); background: color-mix(in srgb, var(--good) 12%, var(--surface)); }
 /* 小圖：照服員設定、鏡頭看到、提示 */
-.thumb { height: 1.8em; width: auto; aspect-ratio: 704 / 384; object-fit: cover; border-radius: 6px; vertical-align: middle; }
+.thumb { height: 1.8em; width: auto; aspect-ratio: 704 / 384; object-fit: contain; vertical-align: middle; }
 .noimg { display: inline-grid; place-items: center; background: var(--surface-2); color: var(--text); font-weight: 800; }
 
 /* 給提示時：提示文字加底色、變明顯 */
