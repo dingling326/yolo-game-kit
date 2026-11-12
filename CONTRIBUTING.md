@@ -43,7 +43,7 @@
 | 遊戲 | game.js 用到的 id | game.js 會切換的 class |
 |---|---|---|
 | `card-quiz` 圖卡問答（長輩版） | `progress` `task` `pic` `clue` `task-card` `hold` `seen` `start` `repeat` `skip` `count` `level` `deck` `setup` `summary` `results` | `#task-card.flash`、`.hinting`、`.long`（Level 2、3 的長題目）、`.memory`（記憶題）；`#big.good`、`#big.soft`；`#deck` 裡的 `button.off`；`#results` 裡的 `li.skipped`、`li.note` |
-| `raise-hand` 舉手挑戰 | `task` `task-card` `hold` `score` `best` `time` `time-text` `start` | `#task-card.flash` |
+| `raise-hand` 舉手挑戰（長輩版） | `task-card` `tag` `icons` `task` `sub` `hold` `stars` `stars-text` `start` `repeat` `pause` `skip` `setup` `level` `count` `speed` `reverse` `group` `swap` `notice` `burst` | `#task-card.flash`、`#tag.practice`、`#big.good`、`#big.soft`；`#icons` 裡的 `.hand.left`／`.hand.right`（加 `.dim`、`.done`）、`.arrow`、`.robot-says`；`#stars` 裡的 `span.new` |
 | `bubble-pop` 戳泡泡 | `task` `hold` `score` `best` `time` `time-text` `start` | |
 | `rps` 猜拳 | `task` `hold` `seen` `you` `bot` `you-pts` `bot-pts` `result` `history` `start` | `#result.win`、`#result.lose`；`#history` 裡的 `span.w`、`span.l` |
 | `seated-exercise` 體操 | `task` `task-card` `sub` `hint` `hold` `phase` `level` `steps` `start` `skip` | `#task-card.flash`；`#steps` 裡的 `li.now`、`li.done` |

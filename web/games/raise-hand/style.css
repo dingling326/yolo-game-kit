@@ -1,1 +1,60 @@
 /* raise-hand 這個遊戲自己的樣式（UI 負責）。共用的樣式在 /common/style.css */
+
+/* 左手藍、右手橘（game.js 畫在攝影機畫面上的顏色也一樣） */
+:root { --left: #3b82f6; --right: #f97316; --cue-bg: #111827; --cue-text: #ffffff; --cue-sub: #ffd54a; }
+.lt { color: var(--left); }
+.rt { color: var(--right); }
+
+/* 指令卡：深底白字、黃字，一次只放一個指令 */
+.cue { background: var(--cue-bg); color: var(--cue-text); border-color: var(--cue-bg); text-align: center; }
+.cue-tag { display: inline-block; font-size: 20px; font-weight: 800; padding: 4px 14px; border-radius: 999px;
+  background: rgba(255, 255, 255, .14); color: var(--cue-text); }
+.cue-tag.practice { background: var(--cue-sub); color: var(--cue-bg); }
+.cue-icons { display: flex; justify-content: center; align-items: center; gap: 18px; min-height: 170px; margin: 12px 0 4px; }
+.cue-icons .hand { display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity .3s, transform .3s; }
+.cue-icons .hand svg { width: 120px; height: 140px; }
+.cue-icons .hand b { font-size: 30px; }
+.cue-icons .hand.left b { color: var(--left); }
+.cue-icons .hand.right b { color: var(--right); }
+.cue-icons .hand.dim { opacity: .3; transform: scale(.85); }     /* 兩步驟：還沒輪到的那一步 */
+.cue-icons .hand.done { opacity: .45; }
+.cue-icons .arrow { font-size: 48px; font-weight: 800; color: var(--cue-sub); }
+.cue-icons .robot-says { font-size: 26px; font-weight: 800; color: var(--cue-sub); line-height: 1.3; }
+.cue-text { font-size: 56px; font-weight: 800; line-height: 1.2; word-break: keep-all; }
+.cue-sub { font-size: 30px; font-weight: 700; color: var(--cue-sub); min-height: 1.3em; margin-top: 6px; }
+.cue .bar { background: rgba(255, 255, 255, .15); }
+.cue.flash { animation: cue-flash .6s ease-out; }
+@keyframes cue-flash { from { background: #166534; } }
+
+/* 星星：只顯示得到的，不顯示「錯幾次」 */
+.stars-card { text-align: center; }
+.stars { font-size: 40px; color: #f5b301; letter-spacing: 4px; min-height: 52px; line-height: 1.3; word-break: break-all; }
+.stars .new { display: inline-block; animation: star-pop .6s ease-out; }
+@keyframes star-pop { 0% { transform: scale(0) rotate(-90deg); } 70% { transform: scale(1.5); } 100% { transform: scale(1); } }
+.stars-text { font-size: 24px; font-weight: 700; }
+
+.buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* 答對時從畫面中間飛出來的星星 */
+.burst { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.burst span { position: absolute; left: 50%; top: 45%; font-size: 56px; color: #ffd54a;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .4); animation: burst 1.3s ease-out forwards; }
+@keyframes burst {
+  from { transform: translate(-50%, -50%) scale(.3); opacity: 1; }
+  to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2) rotate(180deg); opacity: 0; }
+}
+.big.good { color: #ffd54a; }
+.big.soft { color: #ffffff; }
+
+/* 照服員設定（平常收起來，不干擾長輩） */
+.setup summary { cursor: pointer; font-size: 18px; color: var(--muted); }
+.setup-grid { display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: center; margin: 12px 0; }
+.setup .check { display: flex; gap: 10px; align-items: flex-start; font-size: 18px; margin: 8px 0; cursor: pointer; }
+.setup .check input { width: 22px; height: 22px; margin-top: 3px; flex: none; }
+.setup-note { background: color-mix(in srgb, var(--warn) 18%, var(--surface)); border-radius: 10px; padding: 8px 12px; font-size: 18px; font-weight: 700; }
+
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .burst span, .stars .new, .cue.flash { animation: none; }
+}
