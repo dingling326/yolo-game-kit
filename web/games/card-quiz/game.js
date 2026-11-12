@@ -9,8 +9,10 @@
 //   · 照服員設定：題數、桌上放了哪些卡（只從這些卡出題，例如一開始只放 3 張，比較簡單）
 //   · 機器人說話排隊、每句至少隔 3.2 秒，接真機（cooldown 3 秒）也不會被擋
 //   · 結束後列出每一題花了幾秒、有沒有用到提示，給照服員參考。不存檔
+//   · 語音（左下角 🎤）：說「開始」「再說一次」「跳過」「提示」；拿不動卡的長輩也可以直接說出答案（「雞蛋」）
 import { connect, createStage, mainCard, loadCards, Steady, robot } from '/common/pose.js';
 import { mountTopbar, mountRobot } from '/common/ui.js';
+import { voice } from '/common/voice.js';
 
 const ANSWER_MS = 1200;      // 同一張卡拿穩多久才判斷
 const BEGIN_MS = 3000;       // 還沒開始時：任何一張卡拿這麼久 = 開始
@@ -37,8 +39,7 @@ let hinted = false;             // 這一題給過提示了嗎
 let overAt = 0;
 let waitUntil = 0;              // 答對後停一下，這段時間不判斷
 let holding = null;             // 現在鏡頭看到的卡（id）
-let records = [];               // 每一題的紀錄：{card, seconds, hinted, skipped}
-let localVoice = false;         // 模擬機器人時，用電腦喇叭唸出來
+let records = [];               // 每一題的紀錄：{card, seconds, hinted, skipped, how}
 const answer = new Steady(ANSWER_MS);
 const begin = new Steady(BEGIN_MS);
 
@@ -90,8 +91,7 @@ function pumpSay() {
     const { text, show } = sayQueue.shift();
     lastSayAt = performance.now();
     robot.say(text);
-    if (show) robot.show(show);
-    if (localVoice) speak(text);
+    if (show) robot.show(show);              // 唸出來的部分由 ui.js 處理（模擬機器人時用電腦喇叭）
     pumpSay();
   }, wait);
 }
@@ -99,14 +99,6 @@ function clearTalk() {
   sayQueue.length = 0;
   clearTimeout(sayTimer);
   sayTimer = null;
-}
-/** 用瀏覽器內建語音唸出來（只在模擬機器人時用；接真機時由機器人說話） */
-function speak(text) {
-  if (!('speechSynthesis' in window)) return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'zh-TW';
-  u.rate = 0.85;                // 慢一點，長輩比較聽得清楚
-  speechSynthesis.speak(u);
 }
 
 // ---------------------------------------------------------------- 遊戲流程
@@ -197,7 +189,7 @@ function showSummary() {
     const li = document.createElement('li');
     li.textContent = r.skipped
       ? `${r.card.emoji} ${r.card.name}：跳過`
-      : `${r.card.emoji} ${r.card.name}：${r.seconds.toFixed(0)} 秒${r.hinted ? '（用了提示）' : ''}`;
+      : `${r.card.emoji} ${r.card.name}：${r.seconds.toFixed(0)} 秒${r.hinted ? '（用了提示）' : ''}${r.how === 'voice' ? '（用說的）' : ''}`;
     if (r.skipped) li.className = 'skipped';
     $('results').append(li);
   }
@@ -239,11 +231,15 @@ function onPose(people, msg) {
 
   const id = answer.update(holding);
   $('hold').style.width = `${answer.progress() * 100}%`;
-  if (id === null) return;
-  lastNudgeAt = now;                          // 有拿卡出來就算有在玩，重新計算提醒時間
+  if (id !== null) judge(id, now, 'card');
+}
+
+/** 判斷答案。how：'card'（拿卡）或 'voice'（用說的） */
+function judge(id, now, how) {
+  lastNudgeAt = now;                          // 有拿卡或有回答就算有在玩，重新計算提醒時間
 
   if (id === target.id) {
-    records.push({ card: target, seconds: (now - askedAt) / 1000, hinted, skipped: false });
+    records.push({ card: target, seconds: (now - askedAt) / 1000, hinted, skipped: false, how });
     $('task-card').classList.remove('flash');
     void $('task-card').offsetWidth;
     $('task-card').classList.add('flash');
@@ -256,10 +252,10 @@ function onPose(people, msg) {
   } else {
     wrongThis += 1;
     const shown = CARDS.find((c) => c.id === id);
-    showBig(`這是${shown.name}`, 'soft', 1800);
+    const what = how === 'voice' ? `你說的是${shown.name}` : `這是${shown.name}`;
+    showBig(how === 'voice' ? `「${shown.name}」` : `這是${shown.name}`, 'soft', 1800);
     // 第一、二次說完整一點；之後說短一點，不要一直重複長句子
-    talk(wrongThis <= 2 ? `這是${shown.name}。我們要找的是${target.name}，再找找看。` : `這是${shown.name}，再找找看。`,
-      null, 'wrong');
+    talk(wrongThis <= 2 ? `${what}。我們要找的是${target.name}，再找找看。` : `${what}，再找找看。`, null, 'wrong');
     if (wrongThis >= 2 && !hinted) giveHint();
   }
 }
@@ -279,9 +275,26 @@ $('skip').onclick = () => {
   next(performance.now());
 };
 
+// ---------------------------------------------------------------- 語音
+
+voice.words(CARDS.map((c) => c.name));        // 告訴語音辨識：可能會聽到這些卡片名稱
+voice.command(['提示', '給我提示', '不知道', 'hint'], () => {
+  if (state !== 'playing' || !target || hinted) return false;
+  giveHint();
+});
+// 直接說出答案：句子裡有某張卡的名稱（中文或英文）就當作回答
+voice.onText((text) => {
+  if (state !== 'playing' || !target || performance.now() < waitUntil) return false;
+  const t = text.toLowerCase();
+  const said = CARDS.filter((c) => deck.has(c.id) && (text.includes(c.name) || (c.en && t.includes(c.en))));
+  if (said.length !== 1) return false;        // 沒說到、或一次說了好幾張：不算
+  judge(said[0].id, performance.now(), 'voice');
+  return true;
+});
+
 connect({
   onPose,
-  onHello: (msg) => { topbar.hello(msg); localVoice = msg.robot_mode === 'mock'; },
+  onHello: (msg) => topbar.hello(msg),
   onStatus: (connected) => topbar.status(connected),
   onRobot: (msg) => robotBox.show(msg),
 });

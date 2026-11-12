@@ -13,7 +13,7 @@
 | | `web/common/style.css`（所有遊戲共用的樣式） |
 | | `web/index.html`（大廳）、`web/cards/print.html`（列印圖卡） |
 | **開發** | `web/games/<遊戲>/game.js`（遊戲規則、判斷、計分、難度） |
-| | `web/common/pose.js`、`web/common/ui.js` |
+| | `web/common/pose.js`、`web/common/ui.js`、`web/common/voice.js`（語音） |
 | | `pose_service/`（Python：辨識、LLM、紀錄）、`tools/`（訓練模型）、`tests/` |
 | | `cards.json`、`config.json`、`robot_actions.json`、`requirements.txt` |
 
@@ -37,6 +37,8 @@
 - 不要在 `game.js` 裡寫顏色、字體這類樣式，改成加或拿掉 class，樣式交給 UI 寫在 `style.css`
 
 每個遊戲都會用到的 id：`stage`（攝影機畫面）、`robot`（機器人對話框）、`big`（畫面中間的大字）
+
+**語音也靠這些 id**：說「開始」會按 `start`、「跳過」按 `skip`、「再說一次」按 `repeat`、「重來」按 `reset`。所以這幾個按鈕的 id 更不能改。
 
 | 遊戲 | game.js 用到的 id | game.js 會切換的 class |
 |---|---|---|

@@ -220,6 +220,34 @@ import { connect, createStage, point, distance, isHandUp, mainPerson, Hold,
 
 ---
 
+## 語音互動（用說的）
+
+每個遊戲頁和大廳的**左下角都有 🎤 按鈕**，按一下就開始聽（瀏覽器規定要按一下才能用麥克風）。
+聲音在這台電腦上用 Whisper 辨識（`pose_service/asr.py`），不會傳到網路上；中文、英文、中英混著說都可以。
+
+| 在哪裡 | 說什麼 | 做什麼 |
+|---|---|---|
+| 每個遊戲 | 「開始」「再玩一次」 | 按 `id="start"` 的按鈕 |
+| | 「跳過」「下一題」 | 按 `id="skip"` 的按鈕 |
+| | 「再說一次」 | 按 `id="repeat"`；沒有這個按鈕就把機器人上一句再唸一次 |
+| | 「重來」 | 按 `id="reset"` 的按鈕 |
+| | 「回大廳」 | 回到大廳 |
+| 大廳 | 遊戲名稱（「圖卡問答」「體操」「猜拳」） | 打開那個遊戲。叫法寫在 `game.json` 的 `"voice"` |
+| 圖卡問答 | 卡片名稱（「雞蛋」）、「提示」 | 用說的回答、給提示 |
+
+機器人說的話（`robot.say`）也會用電腦喇叭唸出來（模擬機器人時；接真的機器人就由機器人說）。
+電腦在說話的時候不會聽，避免聽到自己的聲音。
+
+**在你的遊戲加語音**：用上面的按鈕 id 就自動有。想多聽一些東西：
+```js
+import { voice } from '/common/voice.js';
+voice.words(['雞蛋', '牙刷']);                        // 告訴辨識「可能會聽到這些詞」，會準很多
+voice.command(['提示', '給我提示'], () => giveHint());  // 加一個指令
+voice.onText((text) => { /* 指令以外的話 */ return true; });
+```
+
+---
+
 ## 設定（config.json）
 
 | 設定 | 預設 | 說明 |
@@ -234,6 +262,9 @@ import { connect, createStage, point, distance, isHandUp, mainPerson, Hold,
 | `max_hands` | `2` | 最多認幾隻手 |
 | `objects_model` | `null` | 自己訓練的 YOLO 物件模型（例如 `"models/cards-yolo11n.onnx"`），認沒有黑白方塊的圖卡或實物。見下面「自己訓練的物件模型」 |
 | `objects_conf` | `0.5` | 物件的信心分數低於這個就不算；常常認錯就調高 |
+| `asr` | `true` | 語音辨識（用說的操作遊戲）。不需要時改 `false`，就不會載入模型 |
+| `asr_model` | `"small"` | Whisper 模型大小。有 NVIDIA 顯示卡用 `small`（一句約 0.4 秒）；只有 CPU 建議 `base` |
+| `asr_device` | `"auto"` | `auto`：有 NVIDIA 顯示卡就用；`cpu`：只用 CPU |
 | `port` | `8800` | 網頁的連接埠 |
 
 改完 `config.json`、`cards.json`、`robot_actions.json` 都要**重開伺服器**。

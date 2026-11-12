@@ -6,3 +6,6 @@ opencv-contrib-python>=4.8
 onnxruntime>=1.17
 # 手部辨識（手指、手勢）
 mediapipe>=0.10.20
+# 語音辨識（Whisper，在這台電腦上跑）＋簡體轉繁體
+faster-whisper>=1.1
+opencc-python-reimplemented>=0.1.7
