@@ -14,9 +14,19 @@
 .big.good { color: #3fcf8e; }
 .big.soft { color: #ffd166; }
 
+/* Level 2、3 和記憶題：圖示放上面、文字放下面，長句子才有整行的寬度 */
+#task-card.long .target, #task-card.memory .target { flex-direction: column; align-items: flex-start; gap: 8px; }
+#task-card.long .task { font-size: 30px; line-height: 1.4; word-break: normal; overflow-wrap: anywhere; }
+#task-card.long .pic { font-size: 56px; }
+
+/* 記憶題：好幾張卡排成一排 */
+#task-card.memory .pic { font-size: 64px; letter-spacing: 6px; white-space: nowrap; }
+#task-card.memory .clue { font-size: 26px; font-weight: 700; color: var(--text); }
+
 /* 結束後的紀錄 */
 .results { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; font-size: 18px; }
 .results .skipped { color: var(--muted); }
+.results .note { list-style: none; margin-top: 6px; color: var(--accent); font-weight: 700; }
 
 /* 照服員設定（平常收起來，不干擾長輩） */
 .setup summary { cursor: pointer; font-size: 18px; color: var(--muted); }
