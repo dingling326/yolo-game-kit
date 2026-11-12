@@ -7,29 +7,62 @@
 <link rel="stylesheet" href="/common/style.css">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="elder">
 <!-- 有 id 的元素 game.js 會用到：可以搬位置、改樣式，但不要刪除或改名。清單在 CONTRIBUTING.md -->
 <main class="game">
   <section id="stage">
-    <div class="overlay"><div class="big" id="big"></div></div>
-    <div class="hint">黃點：這一題要看的關節</div>
+    <div class="overlay"><div class="big" id="big"></div><div class="burst" id="burst"></div></div>
+    <div class="hint">坐著做就可以。<b class="lt">藍色是左手</b>、<b class="rt">橘色是右手</b>，手舉到肩膀高就算</div>
   </section>
 
   <aside class="panel">
-    <div class="card" id="task-card">
-      <h2>現在要做</h2>
-      <div class="task" id="task">按「開始」，或雙手舉高 2 秒</div>
+    <div class="card cue" id="task-card">
+      <div class="cue-tag" id="tag">舉手運動</div>
+      <div class="cue-icons" id="icons"></div>
+      <div class="cue-text" id="task">按「開始」</div>
+      <div class="cue-sub" id="sub">或雙手舉高 3 秒</div>
       <div class="bar"><i id="hold"></i></div>
     </div>
-    <div class="card">
-      <div class="row" style="justify-content: space-between; align-items: end;">
-        <div><h2>分數</h2><div class="score" id="score">0</div></div>
-        <div style="text-align: right;"><h2>最高分</h2><div class="muted" id="best">—</div></div>
-      </div>
-      <div class="bar"><i id="time"></i></div>
-      <div class="muted" id="time-text">30 秒</div>
+
+    <div class="card stars-card">
+      <div class="stars" id="stars"></div>
+      <div class="stars-text" id="stars-text">做對一題，就得到一顆星</div>
     </div>
-    <button class="btn" id="start">開始</button>
+
+    <div class="buttons">
+      <button class="btn" id="start">開始</button>
+      <button class="btn secondary" id="repeat" disabled>再說一次</button>
+      <button class="btn secondary" id="pause" disabled>暫停</button>
+      <button class="btn secondary" id="skip" disabled>跳過</button>
+    </div>
+
+    <details class="card setup" id="setup">
+      <summary>照服員設定</summary>
+      <div class="setup-grid">
+        <label for="level">難度</label>
+        <select id="level">
+          <option value="1">1 左手、右手</option>
+          <option value="2">2 加上雙手</option>
+          <option value="3">3 加上兩個步驟</option>
+        </select>
+        <label for="count">題數</label>
+        <select id="count">
+          <option value="8">8 題</option>
+          <option value="10">10 題</option>
+        </select>
+        <label for="speed">速度</label>
+        <select id="speed">
+          <option value="normal">標準（每題至少 5 秒）</option>
+          <option value="slow">慢（每題至少 8 秒）</option>
+        </select>
+      </div>
+      <label class="check"><input type="checkbox" id="reverse"> 反向指令（進階）：「舉起和我相反的手」</label>
+      <label class="check"><input type="checkbox" id="group"> 團體模式：畫面裡每個人都算，大家一起做</label>
+      <label class="check"><input type="checkbox" id="swap"> 左右對調（舉左手卻被當成右手時勾選）</label>
+      <p class="setup-note" id="notice" hidden></p>
+      <p class="muted">一輪約 3～5 分鐘，超過 5 分鐘會自動結束休息。影像只在這台電腦即時辨識，不會存檔。</p>
+    </details>
+
     <div class="card" id="robot"></div>
   </aside>
 </main>
