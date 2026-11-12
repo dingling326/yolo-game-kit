@@ -1,9 +1,9 @@
 {
   "cards": [
-    {"id": 0, "name": "雞蛋", "en": "egg",        "emoji": "🥚", "hint": "早餐常吃，可以煎、可以煮"},
-    {"id": 1, "name": "藥盒", "en": "pillbox",    "emoji": "💊", "hint": "一格一格的，裝每天要吃的藥"},
-    {"id": 2, "name": "牙刷", "en": "toothbrush", "emoji": "🪥", "hint": "早上起床、晚上睡覺前刷牙用的"},
-    {"id": 3, "name": "青菜", "en": "vegetable",  "emoji": "🥬", "hint": "綠色的，炒來配飯吃"},
-    {"id": 4, "name": "錢包", "en": "wallet",     "emoji": "👛", "hint": "出門買東西，用來裝錢的"}
+    {"id": 0, "name": "雞蛋", "en": "egg", "emoji": "🥚", "hint": "早餐常吃，可以煎、可以煮", "image": "/cards/images/egg.jpg"},
+    {"id": 1, "name": "藥盒", "en": "pillbox", "emoji": "💊", "hint": "一格一格的，裝每天要吃的藥", "image": "/cards/images/pillbox.jpg"},
+    {"id": 2, "name": "牙刷", "en": "toothbrush", "emoji": "🪥", "hint": "早上起床、晚上睡覺前刷牙用的", "image": "/cards/images/toothbrush.jpg"},
+    {"id": 3, "name": "青菜", "en": "vegetable", "emoji": "🥬", "hint": "綠色的，炒來配飯吃", "image": "/cards/images/vegetable.jpg"},
+    {"id": 4, "name": "錢包", "en": "wallet", "emoji": "👛", "hint": "出門買東西，用來裝錢的", "image": "/cards/images/wallet.jpg"}
   ]
 }

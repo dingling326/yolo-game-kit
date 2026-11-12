@@ -49,6 +49,8 @@
 | `seated-exercise` 體操 | `task` `task-card` `sub` `hint` `hold` `phase` `level` `steps` `start` `skip` | `#task-card.flash`；`#steps` 裡的 `li.now`、`li.done` |
 | `_template` 範本 | `count` `debug` `reset` | |
 
+`card-quiz` 的卡片圖片是 `game.js` 產生的元素，樣式可以在 `style.css` 改：`.big-img`（題目的大圖）、`.mem-img`（記憶題）、`.slot`（還沒拿的位置）、`.mark`（？和 ✓）、`.thumb`（小圖）。
+
 新增遊戲時，請把它的 id 補進這張表。
 
 ---

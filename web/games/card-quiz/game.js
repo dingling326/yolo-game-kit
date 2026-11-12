@@ -56,6 +56,27 @@ let records = [];               // 每一題的紀錄
 const answer = new Steady(ANSWER_MS);
 const begin = new Steady(BEGIN_MS);
 
+// ---------------------------------------------------------------- 卡片圖片
+
+/** 卡片的圖片（cards.json 的 image）。沒有圖片的卡就顯示名稱的第一個字 */
+function cardImg(c, cls) {
+  if (!c.image) return box(`${cls} noimg`, c.name.slice(0, 1));
+  const img = document.createElement('img');
+  img.src = c.image;
+  img.alt = c.name;
+  img.className = cls;
+  img.draggable = false;
+  return img;
+}
+function box(cls, text = '') {
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = text;
+  return d;
+}
+const setPic = (...nodes) => $('pic').replaceChildren(...nodes);
+const setClue = (...parts) => $('clue').replaceChildren(...parts.map((x) => (typeof x === 'string' ? document.createTextNode(x) : x)));
+
 // ---------------------------------------------------------------- 照服員設定：桌上有哪些卡、難度
 
 let deck = new Set(CARDS.map((c) => c.id));
@@ -72,7 +93,7 @@ function renderDeck() {
   for (const c of CARDS) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.textContent = `${c.emoji} ${c.name}`;
+    b.replaceChildren(cardImg(c, 'thumb'), document.createTextNode(c.name));
     b.className = deck.has(c.id) ? '' : 'off';
     b.onclick = () => {
       if (deck.has(c.id)) deck.delete(c.id); else deck.add(c.id);
@@ -151,7 +172,7 @@ function makeQuestion(lv) {
       const fresh = ok.filter((x) => !usedKeys.has(x.short));
       const x = pick(fresh.length ? fresh : ok);
       return { kind: 'pick', level: lv, key: x.short, ask: x.ask, short: x.short, answers: new Set(x.ids),
-        hint: x.hint || null, show: { pic: '🤔', task: x.ask, long: true } };
+        hint: x.hint || null, show: { card: null, task: x.ask, long: true } };
     }
     return makeQuestion(lv - 1);
   }
@@ -159,7 +180,7 @@ function makeQuestion(lv) {
   const fresh = choices.filter((c) => !usedKeys.has(c.name));
   const c = pick(fresh.length ? fresh : choices);
   return { kind: 'pick', level: 1, key: c.name, ask: `請拿出${c.name}`, short: c.name, answers: new Set([c.id]),
-    hint: c.hint ? `${c.name}是${c.hint}` : null, show: { pic: c.emoji, task: c.name, long: false } };
+    hint: c.hint ? `${c.name}是${c.hint}` : null, show: { card: c, task: c.name, long: false } };
 }
 
 function ask() {
@@ -176,7 +197,7 @@ function ask() {
   if (q.kind === 'memory') {
     const names = q.seq.map((id) => byId.get(id).name);
     $('task-card').classList.add('memory');
-    $('pic').textContent = q.seq.map((id) => byId.get(id).emoji).join(' ');
+    setPic(...q.seq.map((id) => cardImg(byId.get(id), 'mem-img')));
     $('task').textContent = '請記住';
     $('clue').textContent = names.join('、');
     talk(`我們來考考記性。請記住這${NUM[names.length]}樣東西：${names.join('、')}。`, `請記住：${names.join('、')}`);
@@ -187,10 +208,10 @@ function ask() {
     setTimeout(() => { if (q === thisQ && state === 'playing') startRecall(); }, lookMs);
     return;
   }
-  $('pic').textContent = q.show.pic;
+  setPic(q.show.card ? cardImg(q.show.card, 'big-img') : box('mark', '？'));
   $('task').textContent = q.show.task;
   if (q.show.long) $('task-card').classList.add('long');
-  talk(q.ask, q.level === 1 ? `${q.show.pic} ${q.show.task}` : q.ask);
+  talk(q.ask, q.level === 1 ? q.show.task : q.ask);
 }
 
 /** 記憶題：藏起來，請長輩照順序拿出來 */
@@ -205,7 +226,7 @@ function startRecall() {
 }
 
 function renderSlots() {
-  $('pic').textContent = q.seq.map((id, i) => (i < q.step ? byId.get(id).emoji : '❓')).join(' ');
+  setPic(...q.seq.map((id, i) => (i < q.step ? cardImg(byId.get(id), 'mem-img') : box('slot', String(i + 1)))));
 }
 
 function questionAgain() {
@@ -220,7 +241,7 @@ function giveHint() {
   $('task-card').classList.add('hinting');
   if (q.kind === 'memory') {
     const c = byId.get(q.seq[q.step]);
-    $('clue').textContent = `提示：下一個是 ${c.emoji} ${c.name}`;
+    setClue('提示：下一個是 ', cardImg(c, 'thumb'), ` ${c.name}`);
     talk(`給你一個提示，下一個是${c.name}。`);
     return;
   }
@@ -229,7 +250,7 @@ function giveHint() {
     talk(`給你一個提示，${q.hint}`);
   } else {                                    // 題庫沒寫提示：給看其中一個答案的圖案
     const c = byId.get([...q.answers][0]);
-    $('clue').textContent = `提示：看看這個圖案 ${c.emoji}`;
+    setClue('提示：看看這個圖案 ', cardImg(c, 'thumb'));
     talk('給你一個提示，看看畫面上的圖案。');
   }
 }
@@ -295,14 +316,14 @@ function finish() {
   $('skip').disabled = true;
   $('task-card').classList.remove('hinting', 'long', 'memory');
   $('progress').textContent = '完成了';
-  $('pic').textContent = '🌟';
+  setPic(box('mark done', '✓'));
   $('task').textContent = '完成！';
   $('clue').textContent = '按「再玩一次」，或拿任何一張圖卡 3 秒';
   showBig('完成！', 'good', 3000);
   showSummary();
   robot.expression('proud');
   const answered = records.filter((r) => !r.skipped).length;
-  talk(`全部完成了！你答對了 ${answered} 題，真的很棒，謝謝你陪我玩！`, '全部完成 🌟');
+  talk(`全部完成了！你答對了 ${answered} 題，真的很棒，謝謝你陪我玩！`, '全部完成！');
   setTimeout(() => robot.nod(), 1500);
 }
 
@@ -342,8 +363,12 @@ function onPose(people, msg) {
   // 只有 Level 1 才把正確的卡畫綠框（Level 2、3 畫綠框等於直接告訴答案）
   const good = q?.kind === 'pick' && q.level === 1 ? [...q.answers][0] : undefined;
   stage.draw(people, { skeleton: false, cards: msg.cards, goodCard: good });
-  $('seen').textContent = card ? `${card.emoji} ${card.name}` : '（沒有看到圖卡）';
-  holding = card?.id ?? null;
+  const seenId = card?.id ?? null;
+  if (seenId !== holding) {                   // 換了卡才更新（不要每張畫面都重新放圖片）
+    $('seen').replaceChildren(...(card ? [cardImg(byId.get(card.id) || card, 'thumb'), document.createTextNode(card.name)]
+      : [document.createTextNode('（沒有看到圖卡）')]));
+  }
+  holding = seenId;
   const now = performance.now();
 
   if (state !== 'playing') {
@@ -374,7 +399,7 @@ function judge(id, now, how) {
   if (q.kind === 'memory') return judgeMemory(id, now, how, shown);
 
   if (q.answers.has(id)) {
-    correct(now, how, `${shown.emoji} `);
+    correct(now, how);
     return;
   }
   wrongThis += 1;
@@ -408,7 +433,7 @@ function judgeMemory(id, now, how, shown) {
   if (wrongThis >= 2 && !hinted) giveHint();
 }
 
-function correct(now, how, emoji) {
+function correct(now, how) {
   const rec = { level: q.level, short: q.short, seconds: (now - askedAt) / 1000, hinted, skipped: false,
     how, wrong: wrongThis };
   $('task-card').classList.remove('flash');
@@ -417,7 +442,7 @@ function correct(now, how, emoji) {
   showBig('答對了！', 'good', 2000);
   const praise = q.kind === 'memory' ? '全部都記得，記性真好！' : PRAISE[Math.floor(Math.random() * PRAISE.length)];
   clearTalk();
-  talk(praise, `${emoji}${praise}`);
+  talk(praise, praise);
   robot.nod();
   next(now, rec);
 }
@@ -428,7 +453,7 @@ $('repeat').onclick = () => {
   const text = questionAgain();
   if (!text) return;                          // 記憶題正在給長輩看，不用重說
   clearTalk();
-  talk(text, q.kind === 'pick' && q.level === 1 ? `${q.show.pic} ${q.show.task}` : null);
+  talk(text, q.kind === 'pick' && q.level === 1 ? q.show.task : null);
   if (hinted && q.kind === 'pick' && q.hint) talk(`提示：${q.hint}`);
 };
 $('skip').onclick = () => {
