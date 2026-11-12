@@ -22,6 +22,7 @@ const SPEED = {
   slow: { minShow: 8000, retry: 20000 },
 };
 const HOLD_MS = 1000;        // 動作維持多久才算做到
+const GRACE_MS = 400;        // 辨識偶爾漏掉一兩張畫面（每秒只有 5～10 張）：這麼短的空檔不算放下
 const WRONG_MS = 1200;       // 舉錯手維持多久才提醒（比做到久一點，避免換手的瞬間被當成錯）
 const START_MS = 3000;       // 還沒開始時：雙手舉高 3 秒 = 開始
 const FEEDBACK_MS = 2800;    // 做到之後，稱讚停留多久
@@ -168,16 +169,71 @@ function renderIcons(t, step = 0) {
 
 // ---------------------------------------------------------------- 判斷手有沒有舉起來
 
-/** 寬鬆：手腕到肩膀高就算；手腕看不到（舉太高跑出畫面）時，手肘比肩膀高也算 */
+/**
+ * 肩膀的高度（0～1，越上面越小）。看得到肩膀就用肩膀（信心 0.2 以上就算，肩膀常常只露出一半）；
+ * 肩膀在畫面外（攝影機太高、坐太近）就用臉估計：鼻子往下大約 1.6 倍「鼻子到耳朵」的距離
+ */
+function shoulderY(p, side) {
+  const other = side === 'left' ? 'right' : 'left';
+  const s = point(p, side + '_shoulder', 0.2) || point(p, other + '_shoulder', 0.2);
+  if (s) return s.y;
+  const nose = point(p, 'nose', 0.5);
+  if (!nose) return null;
+  const ear = point(p, side + '_ear', 0.3) || point(p, other + '_ear', 0.3);
+  return nose.y + Math.max(0.08, ear ? Math.abs(ear.x - nose.x) * 1.6 : 0.1);
+}
+
+let hands = [];                 // 這張畫面的手部辨識結果（MediaPipe），姿勢認不到手的時候當備援
+
+/**
+ * 這個人的左右手有沒有舉起來：{left, right}
+ *   · 手腕在肩膀上面就算（信心 0.35 以上）；手腕明顯比肩膀高（0.08 以上）時，信心 0.2 就算
+ *     （肩膀在畫面下緣時，放在桌上的手腕常常剛好跟肩膀一樣高，所以「一樣高」不算）
+ *   · 手腕看不到（舉太高跑出畫面）時，手肘比肩膀高也算
+ *   · 人離鏡頭太近、手臂跑到畫面外時，改看手部辨識：有手出現在肩膀以上、而且在這個人附近也算
+ *   · 兩個手腕幾乎在同一個位置：是同一隻手被認成兩隻，看它在鼻子哪一邊決定是哪隻手
+ */
+const sidesCache = new WeakMap();
+function sides(p) {
+  if (sidesCache.has(p)) return sidesCache.get(p);
+  const res = {}, wrists = {};
+  for (const side of ['left', 'right']) {
+    const sy = shoulderY(p, side);
+    if (sy === null) { res[side] = false; continue; }
+    const w = point(p, side + '_wrist', 0.2);
+    const wUp = !!w && ((w.c >= 0.35 && w.y < sy) || w.y < sy - 0.08);
+    if (wUp) wrists[side] = w;
+    const e = point(p, side + '_elbow', 0.25);
+    const [x1, , x2] = p.box;
+    const h = hands.some((x) => x.side === side && x.center[0] > x1 - 0.15 && x.center[0] < x2 + 0.15 && x.center[1] < sy);
+    res[side] = wUp || !!(e && e.y < sy - 0.02) || h;
+  }
+  const { left: wl, right: wr } = wrists;
+  if (res.left && res.right && wl && wr && Math.abs(wl.x - wr.x) < 0.1 && Math.abs(wl.y - wr.y) < 0.1) {
+    const nose = point(p, 'nose', 0.5);
+    if (nose) {                                // 攝影機的原始畫面：人的左手在鼻子右邊（x 比較大）
+      const x = (wl.x + wr.x) / 2;
+      res.left = x > nose.x;
+      res.right = !res.left;
+    }
+  }
+  sidesCache.set(p, res);
+  return res;
+}
+
 function up(p, side) {
   if (!p) return false;
   if (setting('swap')) side = side === 'left' ? 'right' : 'left';   // 攝影機左右相反時
-  const s = point(p, side + '_shoulder');
-  if (!s) return false;
-  const w = point(p, side + '_wrist');
-  if (w) return w.y < s.y + 0.02;
-  const e = point(p, side + '_elbow');
-  return !!(e && e.y < s.y - 0.02);
+  return sides(p)[side];
+}
+/** 拍到的位置好不好：不好就回傳要給照服員看的提示（攝影機要拍到頭、肩膀，頭上還要留空間給舉起來的手） */
+function framingProblem(p) {
+  if (!p) return '畫面裡沒有看到人，請坐到鏡頭前面';
+  const nose = point(p, 'nose', 0.5);
+  const shoulders = point(p, 'left_shoulder', 0.2) || point(p, 'right_shoulder', 0.2);
+  if (!shoulders || (nose && nose.y > 0.75)) return '看不到肩膀：請把鏡頭往下調，或坐遠一點，讓頭和肩膀都在畫面中間';
+  if (nose && nose.y < 0.12) return '頭太靠近畫面上面，舉手會出畫面：請把鏡頭往上調，或坐遠一點';
+  return null;
 }
 const anyUp = (p) => up(p, 'left') || up(p, 'right');
 
@@ -215,6 +271,8 @@ let startedAt = 0, shownAt = 0, promptAt = 0, nextAt = 0, tries = 0;
 let downSince = null, toldDown = false;
 let wrongArmed = true;          // 舉錯提醒過一次之後，要先把手放下才會再提醒
 let swapHints = 0;              // 練習時舉了「剛好相反」的手幾次（可能是鏡頭左右相反）
+let okSeen = -Infinity;         // 上一次看到「做對」的時間（容許短暫漏掉）
+let badFrameSince = null, toldFrame = false;   // 拍攝位置不好：持續多久、說過了沒
 let overAt = 0;
 const okHold = new Hold(HOLD_MS);
 const wrongHold = new Hold(WRONG_MS);
@@ -431,7 +489,7 @@ function drawSides(people) {
   for (const p of people) {
     for (const side of ['left', 'right']) {
       const real = setting('swap') ? (side === 'left' ? 'right' : 'left') : side;
-      const at = point(p, real + '_wrist') || point(p, real + '_elbow');
+      const at = point(p, real + '_wrist', 0.25) || point(p, real + '_elbow', 0.25);
       if (!at) continue;
       const x = at.x * w, y = at.y * h, r = (up(p, side) ? 34 : 24) * dpr;
       ctx.save();
@@ -461,9 +519,11 @@ function drawSides(people) {
 function onPose(people, msg) {
   topbar.pose(msg);
   const group = setting('group');
+  hands = group ? [] : (msg.hands || []);     // 團體模式分不出是誰的手，只用姿勢
   const players = group ? (people || []) : [pickPlayer(people) || people?.[0]].filter(Boolean);
   stage.draw(people, { skeleton: true, lineWidth: 3 });
   drawSides(players);
+  checkFraming(players[0]);
 
   if (state !== 'playing') {
     // 還沒開始：雙手舉高 3 秒就開始（剛結束的 5 秒內不算，免得歡呼舉手就直接重開）
@@ -496,9 +556,26 @@ function onPose(people, msg) {
   const wrongP = !group && results[0] === 'wrong' ? players[0] : null;
   if (!players.some(anyUp)) wrongArmed = true;
 
+  if (okCount > 0) okSeen = now;
+  const okish = okCount > 0 || now - okSeen < GRACE_MS;
   $('hold').style.width = `${okHold.progress() * 100}%`;
-  if (okHold.update(okCount > 0)) { success(okCount); return; }
+  if (okHold.update(okish)) { success(Math.max(1, okCount)); return; }
   if (wrongHold.update(!!wrongP && wrongArmed)) wrong(wrongP);
+}
+
+/** 拍攝位置不好（例如看不到肩膀）持續 2 秒：畫面上顯示提示，機器人說一次 */
+function checkFraming(p) {
+  const problem = framingProblem(p);
+  const tip = $('frame-tip');
+  if (!problem) { badFrameSince = null; tip.hidden = true; return; }
+  badFrameSince ??= performance.now();
+  if (performance.now() - badFrameSince < 2000) return;
+  tip.textContent = problem;
+  tip.hidden = false;
+  if (!toldFrame && p) {
+    toldFrame = true;
+    talk('我看不太到你的肩膀，請照服員幫忙調整一下鏡頭，讓頭和肩膀都在畫面裡。');
+  }
 }
 
 // 計時：每題的停留時間、很久沒做到要提醒、一輪最長 5 分鐘（暫停的時候不算）

@@ -46,6 +46,11 @@
 .big.good { color: #ffd54a; }
 .big.soft { color: #ffffff; }
 
+/* 拍攝位置不好時的提示（給照服員看）：畫面上方的黃色橫條 */
+.frame-tip { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 3; width: max-content; max-width: calc(100% - 28px);
+  background: #ffd54a; color: #111827; font-size: 24px; font-weight: 800; padding: 10px 18px; border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35); text-align: center; }
+
 /* 照服員設定（平常收起來，不干擾長輩） */
 .setup summary { cursor: pointer; font-size: 18px; color: var(--muted); }
 .setup-grid { display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: center; margin: 12px 0; }
