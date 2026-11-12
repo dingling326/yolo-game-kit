@@ -1,4 +1,5 @@
-// ui.js：每個遊戲頁都一樣的部分（頁首的狀態燈、機器人對話框）。遊戲不用改這個檔案。
+// ui.js：每個遊戲頁都一樣的部分（頁首的狀態燈、機器人對話框、語音）。遊戲不用改這個檔案。
+import { mountVoice, voice } from './voice.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -18,6 +19,7 @@ export function mountTopbar(title) {
     </div>`;
   $('h1', bar).textContent = title;
   document.body.prepend(bar);
+  mountVoice();                               // 左下角的麥克風按鈕：用說的操作（見 voice.js）
   const chip = (k, text, state) => {
     const el = $(`[data-k="${k}"]`, bar);
     el.textContent = text;
@@ -51,6 +53,7 @@ export function mountRobot(element) {
       face.classList.remove('talk');
       void face.offsetWidth;                  // 重新觸發動畫
       if (msg.ok) face.classList.add('talk');
+      if (msg.ok && msg.action === 'say') voice.robotSaid(msg.text);   // 機器人說的話用喇叭唸出來
     },
   };
 }

@@ -1,0 +1,4 @@
+# 有 NVIDIA 顯示卡才需要：讓語音辨識（Whisper）用顯示卡，一句話從好幾秒變成約 0.4 秒
+# 安裝程式（setup.ps1／setup.sh）偵測到 nvidia-smi 會自動裝；約 800 MB
+nvidia-cublas-cu12
+nvidia-cudnn-cu12>=9,<10

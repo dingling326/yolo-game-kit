@@ -327,7 +327,7 @@ function drawCard(ctx, card, w, h, { good, mirror }) {
 
   // 名字標在方塊的下方（上方是卡片的圖，不要蓋住）
   const bottom = Math.max(...card.corners.map(([, y]) => y)) * h;
-  label(ctx, `${card.emoji} ${card.name}`, card.center[0] * w, bottom + 10 * dpr, mirror, 'top');
+  label(ctx, card.name, card.center[0] * w, bottom + 10 * dpr, mirror, 'top');
 }
 
 function drawPerson(ctx, person, w, h, { highlight, color, lineWidth, main }) {

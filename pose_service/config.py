@@ -21,6 +21,9 @@ DEFAULTS = {
     "max_hands": 2,
     "objects_model": None,     # 自己訓練的 YOLO 物件模型（例如 "models/cards-yolo11n.onnx"）。null＝不用
     "objects_conf": 0.5,       # 物件的信心分數低於這個就不算；常常認錯就調高
+    "asr": True,               # 語音辨識（網頁可以用說的操作）。不需要時改 false，就不會載入模型
+    "asr_model": "small",      # Whisper 模型：tiny／base／small／medium。只有 CPU 的電腦建議 base
+    "asr_device": "auto",      # auto：有 NVIDIA 顯示卡就用；cpu：只用 CPU
     "show_video": True,        # false：隱私模式，網頁只看得到骨架和圖卡框，伺服器不送出影像
     "robot": {"mode": "mock", "gateway": "http://127.0.0.1:8080", "robot_id": "zenbo-01"},
 }

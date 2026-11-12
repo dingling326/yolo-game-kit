@@ -13,7 +13,7 @@
 | | `web/common/style.css`（所有遊戲共用的樣式） |
 | | `web/index.html`（大廳）、`web/cards/print.html`（列印圖卡） |
 | **開發** | `web/games/<遊戲>/game.js`（遊戲規則、判斷、計分、難度） |
-| | `web/common/pose.js`、`web/common/ui.js` |
+| | `web/common/pose.js`、`web/common/ui.js`、`web/common/voice.js`（語音） |
 | | `pose_service/`（Python：辨識、LLM、紀錄）、`tools/`（訓練模型）、`tests/` |
 | | `cards.json`、`config.json`、`robot_actions.json`、`requirements.txt` |
 
@@ -38,14 +38,18 @@
 
 每個遊戲都會用到的 id：`stage`（攝影機畫面）、`robot`（機器人對話框）、`big`（畫面中間的大字）
 
+**語音也靠這些 id**：說「開始」會按 `start`、「跳過」按 `skip`、「再說一次」按 `repeat`、「重來」按 `reset`。所以這幾個按鈕的 id 更不能改。
+
 | 遊戲 | game.js 用到的 id | game.js 會切換的 class |
 |---|---|---|
-| `card-quiz` 圖卡問答（長輩版） | `progress` `task` `pic` `clue` `task-card` `hold` `seen` `start` `repeat` `skip` `count` `deck` `setup` `summary` `results` | `#task-card.flash`、`#task-card.hinting`、`#big.good`、`#big.soft`；`#deck` 裡的 `button.off`；`#results` 裡的 `li.skipped` |
+| `card-quiz` 圖卡問答（長輩版） | `progress` `task` `pic` `clue` `task-card` `hold` `seen` `start` `repeat` `skip` `count` `level` `deck` `setup` `summary` `results` | `#task-card.flash`、`.hinting`、`.long`（Level 2、3 的長題目）、`.memory`（記憶題）；`#big.good`、`#big.soft`；`#deck` 裡的 `button.off`；`#results` 裡的 `li.skipped`、`li.note` |
 | `raise-hand` 舉手挑戰 | `task` `task-card` `hold` `score` `best` `time` `time-text` `start` | `#task-card.flash` |
 | `bubble-pop` 戳泡泡 | `task` `hold` `score` `best` `time` `time-text` `start` | |
 | `rps` 猜拳 | `task` `hold` `seen` `you` `bot` `you-pts` `bot-pts` `result` `history` `start` | `#result.win`、`#result.lose`；`#history` 裡的 `span.w`、`span.l` |
 | `seated-exercise` 體操 | `task` `task-card` `sub` `hint` `hold` `phase` `level` `steps` `start` `skip` | `#task-card.flash`；`#steps` 裡的 `li.now`、`li.done` |
 | `_template` 範本 | `count` `debug` `reset` | |
+
+`card-quiz` 的卡片圖片是 `game.js` 產生的元素，樣式可以在 `style.css` 改：`.big-img`（題目的大圖）、`.mem-img`（記憶題）、`.slot`（還沒拿的位置）、`.mark`（？和 ✓）、`.thumb`（小圖）。
 
 新增遊戲時，請把它的 id 補進這張表。
 

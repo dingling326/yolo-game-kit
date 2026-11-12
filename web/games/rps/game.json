@@ -3,5 +3,11 @@
   "description": "喊「剪刀、石頭、布！」之後對鏡頭出拳，機器人也會出。先贏 3 局的人獲勝。",
   "icon": "✌️",
   "author": "範例",
-  "order": 5
+  "order": 5,
+  "voice": [
+    "猜拳",
+    "剪刀石頭布",
+    "石頭剪刀布",
+    "rock paper scissors"
+  ]
 }

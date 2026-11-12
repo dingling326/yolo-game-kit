@@ -45,6 +45,17 @@ if ($hasOld) {
 & .venv\Scripts\python.exe -m pip install --disable-pip-version-check -r requirements.txt
 if ($LASTEXITCODE -ne 0) { Write-Host "套件安裝失敗，請檢查網路後再試一次" -ForegroundColor Red; exit 1 }
 
-& .venv\Scripts\python.exe -c "import cv2, onnxruntime, aiohttp, mediapipe; cv2.aruco; print('檢查通過：opencv', cv2.__version__, '／onnxruntime', onnxruntime.__version__, '／mediapipe', mediapipe.__version__)"
+# 有 NVIDIA 顯示卡：裝語音辨識用的顯示卡套件（沒有的話語音辨識用 CPU，比較慢）
+$hasNvidia = $false
+try { & nvidia-smi -L 2>$null | Out-Null; $hasNvidia = ($LASTEXITCODE -eq 0) } catch {}
+if ($hasNvidia) {
+    Write-Host "偵測到 NVIDIA 顯示卡，安裝語音辨識的顯示卡套件（約 800 MB）..."
+    & .venv\Scripts\python.exe -m pip install --disable-pip-version-check -q -r requirements-gpu.txt
+    if ($LASTEXITCODE -ne 0) { Write-Host "顯示卡套件安裝失敗，語音辨識會改用 CPU（比較慢）" -ForegroundColor Yellow }
+} else {
+    Write-Host "沒有 NVIDIA 顯示卡：語音辨識會用 CPU，建議把 config.json 的 asr_model 改成 base" -ForegroundColor Yellow
+}
+
+& .venv\Scripts\python.exe -c "import cv2, onnxruntime, aiohttp, mediapipe, faster_whisper, opencc; cv2.aruco; print('檢查通過：opencv', cv2.__version__, '／onnxruntime', onnxruntime.__version__, '／mediapipe', mediapipe.__version__, '／faster-whisper', faster_whisper.__version__)"
 Write-Host ""
 Write-Host "完成！按 F5 啟動（或 Ctrl+Shift+P → Tasks: Run Task →「2. 啟動」）" -ForegroundColor Green

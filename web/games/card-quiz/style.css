@@ -1,10 +1,26 @@
 /* card-quiz 這個遊戲自己的樣式（UI 負責）。共用的樣式在 /common/style.css */
 
-.target { display: flex; align-items: center; gap: 18px; }
-.target .pic { font-size: 96px; line-height: 1; }
+/* 題目：圖片在上（整張卡的寬度，長輩看得清楚），文字在下 */
+.target { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.target .pic { display: flex; gap: 12px; }
 .target .task { word-break: keep-all; }
 .clue { margin: 8px 0 4px; font-size: 20px; color: var(--muted); min-height: 1.4em; }
-.seen { font-size: 24px; font-weight: 700; }
+.seen { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; min-height: 48px; }
+
+/* 卡片圖片（cards.json 的 image，去背的圖案）：放在固定比例的框裡，整個圖案都看得到 */
+.big-img, .mem-img, .slot, .mark { aspect-ratio: 704 / 384; border-radius: 14px; }
+.big-img, .mem-img { display: block; object-fit: contain; min-width: 0; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .18)); }
+.big-img { width: 100%; }
+.mem-img, .slot { flex: 1 1 0; min-width: 0; }
+/* 還沒拿出來的位置：虛線框＋第幾個 */
+.slot { display: grid; place-items: center; border: 3px dashed var(--line); color: var(--muted); font-size: 40px; font-weight: 800; }
+/* Level 2、3 的「？」和完成的「✓」 */
+.mark { width: 100%; display: grid; place-items: center; font-size: 88px; font-weight: 800; line-height: 1;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.mark.done { color: var(--good); background: color-mix(in srgb, var(--good) 12%, var(--surface)); }
+/* 小圖：照服員設定、鏡頭看到、提示 */
+.thumb { height: 1.8em; width: auto; aspect-ratio: 704 / 384; object-fit: contain; vertical-align: middle; }
+.noimg { display: inline-grid; place-items: center; background: var(--surface-2); color: var(--text); font-weight: 800; }
 
 /* 給提示時：提示文字加底色、變明顯 */
 #task-card.hinting .clue { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-radius: 10px; padding: 6px 10px; }
@@ -14,9 +30,17 @@
 .big.good { color: #3fcf8e; }
 .big.soft { color: #ffd166; }
 
+/* Level 2、3：題目是一整句話，字小一點、可以換行；「？」小一點 */
+#task-card.long .task { font-size: 30px; line-height: 1.4; word-break: normal; overflow-wrap: anywhere; }
+#task-card.long .mark { aspect-ratio: auto; height: 96px; font-size: 64px; }
+
+/* 記憶題：要記的名稱 */
+#task-card.memory .clue { font-size: 26px; font-weight: 700; color: var(--text); }
+
 /* 結束後的紀錄 */
 .results { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; font-size: 18px; }
 .results .skipped { color: var(--muted); }
+.results .note { list-style: none; margin-top: 6px; color: var(--accent); font-weight: 700; }
 
 /* 照服員設定（平常收起來，不干擾長輩） */
 .setup summary { cursor: pointer; font-size: 18px; color: var(--muted); }
@@ -24,9 +48,11 @@
 .setup-row .btn { margin-left: auto; font-size: 18px; padding: 10px 14px; }
 .deck { display: flex; flex-wrap: wrap; gap: 8px; }
 .deck button {
+  display: inline-flex; align-items: center; gap: 8px;
   font: inherit; font-size: 18px; padding: 6px 10px; border-radius: 10px; cursor: pointer;
   border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--text);
 }
 .deck button.off { border-color: var(--line); background: var(--surface); color: var(--muted); text-decoration: line-through; }
+.deck button.off .thumb { opacity: .35; filter: grayscale(1); }
 
 [hidden] { display: none !important; }

@@ -12,12 +12,14 @@
   GET  /ws               WebSocket：每一張畫面送一則 {"type": "pose", "people": [...], "cards": [...], "hands": [...]}，
                          機器人動作送 {"type": "robot", ...}
   POST /api/robot        叫機器人做事 {"action": "say", "text": "..."}
+  POST /api/asr          語音辨識：送 16 kHz 單聲道 WAV（?prompt=這頁可能會聽到的詞），回傳 {"ok": true, "text": "..."}
 
 攝影機、YOLO、圖卡辨識在背景執行緒跑，網頁伺服器在 asyncio 迴圈跑，用 call_soon_threadsafe 把結果交過來。
 """
 import asyncio
 import json
 import logging
+import mimetypes
 import threading
 import time
 from types import SimpleNamespace
@@ -25,7 +27,7 @@ from types import SimpleNamespace
 import cv2
 from aiohttp import web
 
-from . import config, hands, keypoints
+from . import asr, config, hands, keypoints
 from .cards import CardDetector, DemoCards, load_cards, marker_png
 from .detector import DemoPose, YoloPose
 from .objects import CombinedCards, YoloObjects
@@ -33,6 +35,13 @@ from .robot import MockRobot, RobotGuard, RobotRefused, make_robot
 from .sources import open_source
 
 log = logging.getLogger("pose_service")
+# Windows 的 Python 有時候不認得 webp，圖片會被當成一般檔案。aiohttp 新版有自己的一份對照表，兩邊都加
+mimetypes.add_type("image/webp", ".webp")
+try:
+    from aiohttp import web_fileresponse
+    web_fileresponse.CONTENT_TYPES.add_type("image/webp", ".webp")
+except (ImportError, AttributeError):
+    pass
 WEB = config.ROOT / "web"
 CTX = web.AppKey("ctx", SimpleNamespace)     # 伺服器的狀態：影像來源、辨識、機器人、hub
 
@@ -146,6 +155,7 @@ async def status(request):
         "fps": app.hub.fps, "clients": len(app.hub.clients), "notice": app.notice,
         "modules": {k: m.label for k, m in app.modules.items()},
         "show_video": app.cfg.get("show_video", True),
+        "asr": app.asr.label if app.asr else None,
     })
 
 
@@ -191,7 +201,8 @@ async def websocket(request):
                         "source": app.source.label, "source_kind": app.source.kind,
                         "detector": app.detector.label, "robot": app.robot.label,
                         "robot_mode": app.robot.mode, "modules": {k: m.label for k, m in app.modules.items()},
-                        "hand_connections": hands.CONNECTIONS, "show_video": app.cfg.get("show_video", True)},
+                        "hand_connections": hands.CONNECTIONS, "show_video": app.cfg.get("show_video", True),
+                        "asr": app.asr.label if app.asr else None},
                        dumps=lambda o: json.dumps(o, ensure_ascii=False))
 
     async def sender():
@@ -228,16 +239,36 @@ async def robot_api(request):
     except RobotRefused as e:
         app.hub.event({"type": "robot", "ok": False, "action": action, "error": str(e)})
         return web.json_response({"ok": False, "error": str(e)})
-    app.hub.event({"type": "robot", "ok": True, "action": action, "result": result})
+    app.hub.event({"type": "robot", "ok": True, "action": action, "result": result,
+                   "text": text if action == "say" else "", "robot_mode": app.robot.mode})
     return web.json_response({"ok": True, "result": result})
 
 
-def build_app(cfg, source, detector, robot, notice=None, modules=None, card_list=None):
+async def asr_api(request):
+    app = request.app[CTX]
+    if app.asr is None:
+        return web.json_response({"ok": False, "error": "語音辨識沒有開（config.json 的 asr）"})
+    data = await request.read()
+    if not data or len(data) > 5_000_000:
+        return web.json_response({"ok": False, "error": "聲音太長或是空的"}, status=400)
+    prompt = request.query.get("prompt", "")[:300]
+    try:
+        # 辨識要幾百毫秒，放到執行緒做，不卡住影像串流
+        out = await asyncio.get_running_loop().run_in_executor(None, app.asr.transcribe, data, prompt)
+    except asr.AsrUnavailable as e:
+        return web.json_response({"ok": False, "error": str(e)})
+    except Exception as e:
+        log.exception("語音辨識失敗")
+        return web.json_response({"ok": False, "error": f"語音辨識失敗：{e}"})
+    return web.json_response({"ok": True, **out})
+
+
+def build_app(cfg, source, detector, robot, notice=None, modules=None, card_list=None, asr_engine=None):
     """modules：其他辨識模組 {"cards": ..., "hands": ...}（沒給＝只認姿勢）；card_list：圖卡清單，沒給就讀 cards.json"""
     modules = modules or {}
     app = web.Application(middlewares=[no_cache])
     ctx = app[CTX] = SimpleNamespace(cfg=cfg, source=source, detector=detector, robot=robot,
-                                     guard=RobotGuard(robot), notice=notice, hub=None, modules=modules,
+                                     guard=RobotGuard(robot), notice=notice, hub=None, modules=modules, asr=asr_engine,
                                      card_list=card_list if card_list is not None else load_cards())
     app.router.add_get("/", index)
     app.router.add_get("/api/games", games)
@@ -247,6 +278,7 @@ def build_app(cfg, source, detector, robot, notice=None, modules=None, card_list
     app.router.add_get("/video.mjpg", video)
     app.router.add_get("/ws", websocket)
     app.router.add_post("/api/robot", robot_api)
+    app.router.add_post("/api/asr", asr_api)
     app.router.add_static("/common", WEB / "common")
     app.router.add_static("/games", WEB / "games")
     app.router.add_static("/cards", WEB / "cards")
@@ -271,6 +303,8 @@ def build_app(cfg, source, detector, robot, notice=None, modules=None, card_list
 def main(argv=None):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
+    for noisy in ("faster_whisper", "httpx", "huggingface_hub"):      # 語音辨識每一句都會印，太吵
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     cfg = config.load(argv)
 
     source, notice = open_source(cfg)
@@ -302,6 +336,12 @@ def main(argv=None):
             modules["hands"] = hands.DemoHands() if demo else hands.HandDetector(max_hands=cfg["max_hands"])
         except hands.HandsUnavailable as e:
             notice = (notice + "；" if notice else "") + f"手部辨識關閉：{e}"
+    asr_engine = None
+    if cfg.get("asr"):
+        try:
+            asr_engine = asr.WhisperASR(cfg["asr_model"], cfg["asr_device"])
+        except asr.AsrUnavailable as e:
+            notice = (notice + "；" if notice else "") + f"語音辨識關閉：{e}"
     try:
         robot = make_robot(cfg)
     except Exception as e:
@@ -317,6 +357,7 @@ def main(argv=None):
         log.info("隱私模式：網頁只看得到骨架和圖卡框，不送出影像")
     url = f"http://{'127.0.0.1' if cfg['host'] in ('0.0.0.0', '127.0.0.1') else cfg['host']}:{cfg['port']}"
     print(f"\n  打開瀏覽器：{url}\n  要停止請按 Ctrl+C（或 VS Code 的紅色方塊）\n", flush=True)
-    web.run_app(build_app(cfg, source, detector, robot, notice, modules, card_list), host=cfg["host"], port=cfg["port"],
+    web.run_app(build_app(cfg, source, detector, robot, notice, modules, card_list, asr_engine),
+                host=cfg["host"], port=cfg["port"],
                 print=None, access_log=None)
     return 0

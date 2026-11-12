@@ -37,6 +37,7 @@
 
 <script type="module">
 import { connect, createStage } from '/common/pose.js';
+import { mountVoice, voice } from '/common/voice.js';
 
 const stage = createStage(document.querySelector('#preview'));
 connect({ onPose: (people) => stage.draw(people) });
@@ -69,6 +70,21 @@ for (const g of games) {
   a.querySelector('.meta').textContent = [g.author && `作者：${g.author}`, `資料夾：${g.id}`].filter(Boolean).join('　');
   document.getElementById(g.template ? 'templates' : 'games').append(a);
 }
+
+// 語音：說遊戲的名字就打開那個遊戲。叫法寫在每個遊戲 game.json 的 "voice"（例如 ["體操", "做體操"]）
+mountVoice();
+const playable = games.filter((g) => !g.template);
+const short = (title) => title.replace(/[（(].*?[)）]/g, '').trim();     // 「圖卡問答（長輩版）」→「圖卡問答」
+const names = (g) => [short(g.title || g.id), ...(g.voice || [])];
+voice.words(playable.map((g) => short(g.title || g.id)));
+voice.onText((text) => {
+  const t = text.replace(/\s/g, '').toLowerCase();
+  const hit = playable.find((g) => names(g).some((n) => t.includes(n.replace(/\s/g, '').toLowerCase())));
+  if (!hit) return false;
+  voice.speak(`好，我們來玩${short(hit.title)}`);
+  setTimeout(() => { location.href = hit.url; }, 1500);
+  return true;
+});
 </script>
 </body>
 </html>
