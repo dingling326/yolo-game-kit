@@ -12,7 +12,7 @@
   GET  /ws               WebSocket：每一張畫面送一則 {"type": "pose", "people": [...], "cards": [...], "hands": [...]}，
                          機器人動作送 {"type": "robot", ...}
   POST /api/robot        叫機器人做事 {"action": "say", "text": "..."}
-  POST /api/chat         跟機器人聊天：送 {"messages": [...], "name": "張爺爺"}，回傳 {"ok": true, "reply": "...", "alert": false}
+  POST /api/chat         跟機器人聊天：送 {"messages": [...], "name": "張爺爺", "page": "圖卡問答"}，回傳 {"ok": true, "reply": "...", "alert": false}
   POST /api/asr          語音辨識：送 16 kHz 單聲道 WAV（?prompt=這頁可能會聽到的詞），回傳 {"ok": true, "text": "..."}
 
 攝影機、YOLO、圖卡辨識在背景執行緒跑，網頁伺服器在 asyncio 迴圈跑，用 call_soon_threadsafe 把結果交過來。
@@ -276,7 +276,7 @@ async def chat_api(request):
     try:
         # 等 Claude 回答要幾秒，放到執行緒做，不卡住影像串流。對話內容不寫進紀錄
         out = await asyncio.get_running_loop().run_in_executor(
-            None, app.chat.reply, body.get("messages") or [], str(body.get("name") or ""))
+            None, app.chat.reply, body.get("messages") or [], str(body.get("name") or ""), str(body.get("page") or ""))
     except chat.ChatUnavailable as e:
         return web.json_response({"ok": False, "error": str(e)})
     except ValueError as e:

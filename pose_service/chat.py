@@ -71,7 +71,7 @@ class ChatBot:
                 raise ChatUnavailable("還沒設定 ANTHROPIC_API_KEY（放在專案資料夾的 .env 檔，見 README）")
         return self.client
 
-    def reply(self, history, name=""):
+    def reply(self, history, name="", page=""):
         """history：[{"role": "user"|"assistant", "content": "..."}]，最後一則要是 user。
         回傳 {"reply": "...", "alert": bool, "alert_reason": "..."}"""
         messages = _clean(history)
@@ -80,6 +80,8 @@ class ChatBot:
         system = [{"type": "text", "text": SYSTEM}]
         if name:
             system.append({"type": "text", "text": f"這位長輩請稱呼他「{name[:20]}」。"})
+        if page:
+            system.append({"type": "text", "text": f"長輩現在在網頁的「{page[:30]}」頁面。問到怎麼玩，就用一兩句簡單說明；不要一直提遊戲。"})
         a = self.anthropic
         try:
             resp = self._client().beta.messages.create(

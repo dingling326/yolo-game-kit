@@ -377,7 +377,7 @@ function onPose(people, msg) {
     $('hold').style.width = `${begin.progress() * 100}%`;
     return;
   }
-  if (now < waitUntil || !q) { $('hold').style.width = '0%'; return; }
+  if (now < waitUntil || !q || chatOpen) { $('hold').style.width = '0%'; return; }   // 跟小寶聊天時先不判斷、不提醒
 
   // 很久沒答對：先再說一次題目，再久一點就給提示
   if (now - lastNudgeAt > NUDGE_MS) {
@@ -462,6 +462,11 @@ $('skip').onclick = () => {
   talk('沒關係，我們換下一題。');
   next(performance.now(), { level: q.level, short: q.short, seconds: 0, hinted, skipped: true, wrong: wrongThis });
 };
+
+// 跟小寶聊天的視窗開著：圖卡問答先停（不判斷、不提醒）；關上後重新計算提醒時間
+let chatOpen = false;
+window.addEventListener('chat:open', () => { chatOpen = true; });
+window.addEventListener('chat:close', () => { chatOpen = false; lastNudgeAt = performance.now(); answer.ignore(holding); });
 
 // ---------------------------------------------------------------- 語音
 

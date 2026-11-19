@@ -401,14 +401,14 @@ function finish(tooLong = false) {
   setTimeout(() => robot.nod(), 1500);
 }
 
-function togglePause() {
+function togglePause(quiet = false) {
   if (state !== 'playing') return;
   if (pausedAt === null) {
     pausedAt = performance.now();
     $('pause').textContent = '繼續';
     $('tag').textContent = '休息中';
     clearTalk();
-    talk('我們休息一下，準備好了再繼續。');
+    if (!quiet) talk('我們休息一下，準備好了再繼續。');
   } else {
     pausedTotal += performance.now() - pausedAt;
     pausedAt = null;
@@ -601,6 +601,16 @@ $('skip').onclick = () => {
   phase = 'done';
   nextAt = clock() + 1500;
 };
+
+// 跟小寶聊天的視窗打開：遊戲先暫停（不出聲，讓小寶說話）；關上時，如果是因為聊天才暫停的，就繼續
+let pausedByChat = false;
+window.addEventListener('chat:open', () => {
+  if (state === 'playing' && pausedAt === null) { togglePause(true); pausedByChat = true; }
+});
+window.addEventListener('chat:close', () => {
+  if (pausedByChat && state === 'playing' && pausedAt !== null) togglePause();
+  pausedByChat = false;
+});
 
 // ---------------------------------------------------------------- 語音
 

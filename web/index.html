@@ -38,9 +38,13 @@
 <script type="module">
 import { connect, createStage } from '/common/pose.js';
 import { mountVoice, voice } from '/common/voice.js';
+import { mountChat } from '/common/chat.js';
 
 const stage = createStage(document.querySelector('#preview'));
-connect({ onPose: (people) => stage.draw(people) });
+connect({
+  onPose: (people) => stage.draw(people),
+  onRobot: (msg) => { if (msg.ok && msg.action === 'say') voice.robotSaid(msg.text); },   // 小寶說的話用喇叭唸出來
+});
 
 const chip = (id, text, state) => {
   const el = document.getElementById(id);
@@ -73,6 +77,7 @@ for (const g of games) {
 
 // 語音：說遊戲的名字就打開那個遊戲。叫法寫在每個遊戲 game.json 的 "voice"（例如 ["體操", "做體操"]）
 mountVoice();
+mountChat('大廳');
 const playable = games.filter((g) => !g.template);
 const short = (title) => title.replace(/[（(].*?[)）]/g, '').trim();     // 「圖卡問答（長輩版）」→「圖卡問答」
 const names = (g) => [short(g.title || g.id), ...(g.voice || [])];

@@ -61,7 +61,8 @@ function speak(text) {
   const ends = start + estimateMs(text);
   speakingUntil = ends;
   u.onend = () => {
-    if (speakingUntil === ends && !speechSynthesis.pending) speakingUntil = performance.now() + AFTER_SPEAK_MS;
+    // 唸完了：可以提早恢復聽。只能「提早」不能「延後」——估計的時間已經過了、長輩已經開口時，延後會把他的話切掉
+    if (speakingUntil === ends && !speechSynthesis.pending) speakingUntil = Math.min(speakingUntil, performance.now() + AFTER_SPEAK_MS);
   };
   speechSynthesis.speak(u);
 }
@@ -85,6 +86,7 @@ const state = {
   mode: 'off',         // off／listening（聽）／hearing（有人在說）／thinking（辨識中）／error
   extraWords: [],
   strict: false,       // 指令要整句話差不多就是指令才算（聊天時用）
+  capture: null,       // 接管：{commands, onText}，開著的時候遊戲的指令和 onText 都不會收到
   commands: [],
   textHandlers: [],
   ui: null,
@@ -225,6 +227,14 @@ async function recognise(chunks, rate) {
 /** 指令比對：遊戲自己加的指令優先，再來是內建指令，最後交給 onText */
 function handle(text) {
   const t = norm(text);
+  // 被接管（例如跟小寶聊天的視窗開著）：只認接管者的指令和「回大廳」（整句話就是指令才算），其他的話都交給接管者
+  if (state.capture) {
+    const whole = (p) => t.length <= norm(p).length + 2 && t.includes(norm(p));
+    for (const c of [...state.capture.commands, BUILTIN[0]]) {
+      if (c.phrases.some(whole) && c.run(text) !== false) return true;
+    }
+    return !!state.capture.onText(text);
+  }
   // 嚴格模式（聊天頁）：整句話差不多就是指令才算，「我年輕時開始學做菜」不會按到「開始」
   const hit = (p) => (state.strict ? t.length <= norm(p).length + 2 && t.includes(norm(p)) : t.includes(norm(p)));
   for (const c of [...state.commands, ...BUILTIN]) {
@@ -285,6 +295,12 @@ export const voice = {
   },
   /** 這一頁可能會聽到的詞（例如圖卡名稱），辨識會準很多 */
   words(list) { state.extraWords = [...list]; },
+  /**
+   * 接管語音：之後聽到的話都交給 onText（遊戲的指令不會被按到），commands 是接管時還要認的指令。
+   * 跟小寶聊天的視窗開著的時候用；release() 還回去
+   */
+  capture(commands, onText) { state.capture = { commands, onText }; },
+  release() { state.capture = null; },
   /** 嚴格指令：整句話差不多就是指令才算（聊天這種「什麼都可能說」的頁面用） */
   strictCommands(on = true) { state.strict = on; },
   /** 加一個指令：phrases 裡任何一個詞出現在句子裡就執行 run(句子)。run 回傳 false 表示「這次不算」 */
