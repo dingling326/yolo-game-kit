@@ -24,7 +24,10 @@ DEFAULTS = {
     "asr": True,               # 語音辨識（網頁可以用說的操作）。不需要時改 false，就不會載入模型
     "asr_model": "small",      # Whisper 模型：tiny／base／small／medium。只有 CPU 的電腦建議 base
     "asr_device": "auto",      # auto：有 NVIDIA 顯示卡就用；cpu：只用 CPU
-    "chat": True,              # 跟機器人聊天（用 Claude API，要設定 ANTHROPIC_API_KEY）。不需要時改 false
+    "chat": True,              # 小寶（跟機器人聊天）。不需要時改 false
+    "chat_provider": "local",  # local：本機模型（Ollama，不用金鑰）；claude：Claude API（要設定 ANTHROPIC_API_KEY）
+    "local_model": "qwen2.5:7b",
+    "ollama_url": "http://127.0.0.1:11434",
     "chat_model": "claude-opus-5-5",
     "chat_effort": "low",      # 想多久：low 回得最快，聊天夠用；medium／high 比較深入但比較慢
     "show_video": True,        # false：隱私模式，網頁只看得到骨架和圖卡框，伺服器不送出影像

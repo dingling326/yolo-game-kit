@@ -69,7 +69,7 @@ function buildUi() {
       <details class="chat-more"><summary>照服員設定</summary>
         <label>怎麼稱呼長輩（例如：張爺爺）<input class="chat-name" type="text" maxlength="20" placeholder="不填就不稱呼名字"></label>
         <label>用打字的<span class="chat-type"><input class="chat-text" type="text" maxlength="200" placeholder="打字後按送出"><button type="button" class="chat-send">送出</button></span></label>
-        <p class="chat-note">聲音在這台電腦辨識，只有文字會送到 Claude（Anthropic）產生回答，不會存檔。說「小寶安靜一下」小寶就不回話，說「小寶」再叫醒他。</p>
+        <p class="chat-note"><span class="chat-privacy">聲音在這台電腦辨識，對話不會存檔。</span>說「小寶安靜一下」小寶就不回話，說「小寶」再叫醒他。</p>
         <p class="chat-error" hidden></p>
         <button type="button" class="chat-clear">清除這次的對話</button>
       </details>
@@ -274,11 +274,16 @@ export async function mountChat(page) {
   mounted = true;
   st.page = page || '';
   st.lobby = page === '大廳';
+  let chatLabel = '';
   try {
     const status = await (await fetch('/api/status')).json();
     if (!status.chat) return;               // 伺服器沒開聊天功能（config.json 的 chat）：不顯示小寶
+    chatLabel = status.chat;
   } catch {}
   st.ui = buildUi();
+  st.ui.$('.chat-privacy').textContent = chatLabel.includes('本機')
+    ? '聲音和文字都只在這台電腦處理（本機模型），對話不會存檔。'
+    : '聲音在這台電腦辨識，只有文字會送到 Claude（Anthropic）產生回答，對話不會存檔。';
   restore();
   renderLog();
   setMuted(st.muted);

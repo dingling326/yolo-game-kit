@@ -371,7 +371,7 @@ def main(argv=None):
     chat_bot = None
     if cfg.get("chat"):
         try:
-            chat_bot = chat.ChatBot(cfg["chat_model"], cfg["chat_effort"])
+            chat_bot = chat.make_bot(cfg)
         except chat.ChatUnavailable as e:
             notice = (notice + "；" if notice else "") + f"聊天功能關閉：{e}"
     try:
