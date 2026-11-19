@@ -602,16 +602,6 @@ $('skip').onclick = () => {
   nextAt = clock() + 1500;
 };
 
-// 跟小寶聊天的視窗打開：遊戲先暫停（不出聲，讓小寶說話）；關上時，如果是因為聊天才暫停的，就繼續
-let pausedByChat = false;
-window.addEventListener('chat:open', () => {
-  if (state === 'playing' && pausedAt === null) { togglePause(true); pausedByChat = true; }
-});
-window.addEventListener('chat:close', () => {
-  if (pausedByChat && state === 'playing' && pausedAt !== null) togglePause();
-  pausedByChat = false;
-});
-
 // ---------------------------------------------------------------- 語音
 
 voice.command(['暫停', '休息', '停一下', '等一下', 'pause'], () => {

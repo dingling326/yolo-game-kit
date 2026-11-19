@@ -195,28 +195,32 @@ button { font: inherit; }
 .elder .voice-icon { font-size: 32px; }
 @media (prefers-reduced-motion: reduce) { .voice[data-mode="hearing"] .voice-icon { animation: none; } }
 
-/* ---------- 跟小寶聊天：右下角的按鈕和聊天視窗（chat.js），每一頁都有 ---------- */
+/* ---------- 小寶：每一頁右下角的小視窗（chat.js），跟著網頁一起啟動 ---------- */
 .chat-face { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; place-items: center; flex: none;
   width: 44px; height: 36px; padding: 7px 8px 4px; border-radius: 12px; background: #dbe6fb; }
 .chat-face i { width: 9px; height: 9px; border-radius: 50%; background: #1f2a44; transition: height .15s; }
 .chat-face b { grid-column: 1 / 3; width: 18px; height: 4px; border-radius: 0 0 8px 8px; background: #1f2a44; }
-.chat-fab { position: fixed; right: 16px; bottom: 16px; z-index: 55; display: flex; align-items: center; gap: 10px; cursor: pointer;
-  font: inherit; font-size: 20px; font-weight: 800; padding: 10px 18px 10px 10px; border-radius: 999px; border: 0;
-  background: #111827; color: #fff; box-shadow: var(--shadow); }
-.chat-panel { position: fixed; right: 16px; bottom: 16px; z-index: 60; width: min(440px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
-  display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 18px; overflow: auto;
+.chat-panel { position: fixed; right: 16px; bottom: 16px; z-index: 60; width: min(380px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
+  display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 18px; overflow: auto;
   background: #111827; color: #fff; box-shadow: 0 10px 40px rgba(0, 0, 0, .35); }
-.chat-head { display: flex; align-items: center; gap: 12px; }
-.chat-status { flex: 1; font-size: 20px; font-weight: 700; color: #ffd54a; }
-.chat-head button, .chat-actions button, .chat-more button { font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
-  border: 0; border-radius: 12px; padding: 10px 14px; background: rgba(255, 255, 255, .14); color: #fff; }
-.chat-say { font-size: 30px; font-weight: 800; line-height: 1.35; min-height: 1.4em; overflow-wrap: anywhere; }
+.chat-panel.expanded { width: min(440px, calc(100vw - 32px)); }
+.chat-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 0; border: 0; background: none; color: inherit;
+  font: inherit; text-align: left; cursor: pointer; }
+.chat-status { flex: 1; font-size: 18px; font-weight: 700; color: #ffd54a; }
+.chat-toggle { font-size: 15px; color: #b8c2d8; padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+.chat-say { font-size: 22px; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; }
+.chat-say:empty { display: none; }
+.chat-panel.expanded .chat-say { font-size: 28px; }
+.chat-panel:not(.expanded) .chat-body { display: none; }
+.chat-body { display: flex; flex-direction: column; gap: 10px; }
+.chat-actions button, .chat-more button { font: inherit; font-size: 17px; font-weight: 700; cursor: pointer;
+  border: 0; border-radius: 12px; padding: 10px 12px; background: rgba(255, 255, 255, .14); color: #fff; }
 .chat-log { display: flex; flex-direction: column; gap: 6px; max-height: 30vh; overflow-y: auto; }
 .chat-msg { padding: 8px 12px; border-radius: 12px; font-size: 18px; line-height: 1.4; max-width: 90%; }
 .chat-msg.user { align-self: flex-end; background: #2b4a8b; }
 .chat-msg.bot { align-self: flex-start; background: rgba(255, 255, 255, .12); }
 .chat-msg.note { align-self: center; background: none; color: #b8c2d8; font-size: 16px; padding: 0; }
-.chat-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chat-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .chat-more summary { cursor: pointer; color: #b8c2d8; font-size: 16px; }
 .chat-more label { display: grid; gap: 4px; margin: 8px 0; font-size: 16px; color: #dfe6f3; }
 .chat-more input { font: inherit; font-size: 18px; padding: 6px 10px; border-radius: 10px; border: 0; min-width: 0; }
@@ -224,10 +228,12 @@ button { font: inherit; }
 .chat-type input { flex: 1; }
 .chat-note { font-size: 14px; color: #b8c2d8; margin: 6px 0; }
 .chat-error { background: #ffd54a; color: #111827; border-radius: 10px; padding: 6px 10px; font-size: 16px; font-weight: 700; }
-/* 小寶的臉：在聽（眼睛綠）、在想（眼睛瞇）、說話（嘴巴動） */
+/* 小寶的臉：在聽（眼睛綠）、在想（眼睛瞇）、說話（嘴巴動）、安靜（閉眼） */
 .chat-panel[data-mode="listening"] .chat-face i { background: #1f9d63; }
 .chat-panel[data-mode="thinking"] .chat-face i { height: 3px; }
 .chat-panel[data-mode="speaking"] .chat-face b { animation: chat-speak .35s ease-in-out infinite alternate; }
+.chat-panel[data-mode="muted"] .chat-face i { height: 2px; background: #8a94a8; }
+.chat-panel[data-mode="muted"] .chat-status { color: #b8c2d8; }
 @keyframes chat-speak { to { height: 10px; } }
 /* 給照服員的提醒：畫面最上面的黃色橫條 */
 .chat-alert { position: fixed; left: 16px; right: 16px; top: 16px; z-index: 70; display: flex; align-items: center; gap: 14px;
@@ -236,5 +242,5 @@ button { font: inherit; }
 .chat-alert b { display: block; font-size: 24px; }
 .chat-alert button { flex: none; font: inherit; font-size: 20px; font-weight: 800; border: 0; border-radius: 12px; padding: 10px 16px;
   background: #111827; color: #fff; cursor: pointer; }
-.chat-fab[hidden], .chat-panel[hidden], .chat-alert[hidden], .chat-error[hidden] { display: none !important; }
+.chat-alert[hidden], .chat-error[hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .chat-panel[data-mode="speaking"] .chat-face b { animation: none; } }
