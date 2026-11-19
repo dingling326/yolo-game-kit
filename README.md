@@ -270,6 +270,50 @@ voice.onText((text) => { /* 指令以外的話 */ return true; });
 
 ---
 
+## 小寶（跟著網頁一起啟動，每一頁都有）
+
+機器人「小寶」在每一頁（大廳和每個遊戲）的**右下角**，網頁一打開就開始聽，**不用另外按按鈕**（`web/common/chat.js`）。
+瀏覽器規定使用者要先點過畫面才能開麥克風和聲音：這時點畫面任何地方就開始，小寶會先打招呼（每次開瀏覽器只打一次）。
+
+- 長輩說的話**先給這一頁**（遊戲的指令、大廳的遊戲名稱、圖卡問答說出來的答案）；這一頁不處理的話，就是在跟小寶聊天
+- 指令要**整句話就是指令**才算：「我年輕時開始學做菜」會跟小寶聊，不會按到「開始」
+- 說「**小寶安靜一下**」小寶就不回話，說「**小寶**」再叫醒他；也可以點小寶的視窗展開，按「小寶安靜」
+- **換頁的時候接著聊**（存在這個瀏覽器分頁，關掉就沒了，不會存檔）；小寶知道長輩在哪一頁，問「這個怎麼玩」會簡單說明
+- 回答一到兩句、慢慢唸；**只有在大廳**，長輩一陣子沒說話時小寶才會主動問一句（玩遊戲時不打擾）
+- 點小寶的視窗可以展開：對話紀錄、換個話題（懷舊的話題）、照服員設定（怎麼稱呼長輩、用打字的）
+- 長輩提到身體不舒服、跌倒、不想活了等，畫面最上面會出現「請照服員注意」；不給醫療、用藥建議
+- 聲音在這台電腦辨識（Whisper）；回答用本機模型（預設）或 Claude 產生，見下面
+
+**日照中心的電腦要完全自動開始**（不用點畫面）：用這個方式開 Chrome，允許網頁自己出聲音：
+```
+chrome.exe --autoplay-policy=no-user-gesture-required --kiosk http://127.0.0.1:8800
+```
+第一次會問能不能用麥克風，按「允許」之後就會記住。
+
+**小寶的「大腦」有兩種**（`config.json` 的 `chat_provider`）：
+
+| | `local`（預設）：本機模型 | `claude`：Claude API |
+|---|---|---|
+| 要什麼 | 安裝 [Ollama](https://ollama.com) 並下載模型 | API 金鑰（`.env` 的 `ANTHROPIC_API_KEY`） |
+| 網路、費用 | 不用網路、免費 | 要網路、依用量付費 |
+| 隱私 | 聲音和文字都不會離開這台電腦 | 文字會送到 Anthropic |
+| 回答品質 | 普通～不錯 | 最好 |
+
+**用本機模型（不用金鑰）**：
+1. 到 https://ollama.com/download 下載安裝 Ollama（Windows 版約 1.5 GB）。C 槽空間不夠的話，先設定環境變數 `OLLAMA_MODELS=D:\ollama-models`，模型就會放在 D 槽
+2. 下載模型：`ollama pull qwen2.5:7b`（約 4.7 GB；有 NVIDIA 顯示卡會快很多）
+3. `config.json` 的 `local_model` 填模型名稱，重開伺服器
+
+伺服器啟動時會在背景把模型載入顯示卡（GTX 1070 第一次約 10 秒～1 分鐘），之後每句約 1.5～3 秒。Ollama 沒在跑的話，伺服器會自動幫忙啟動。
+我們試過 `qwen2.5:7b` 和聯發科的 Breeze 7B：Breeze 說話比較像台灣人，但比較不聽規則（會答應幫忙打電話、回答很長），所以預設用 Qwen。Qwen 偶爾冒出的英文單字和簡體字，伺服器會自動處理。
+
+**用 Claude**：把 `.env.example` 複製成 `.env`，填上 `ANTHROPIC_API_KEY`（到 console.anthropic.com 建立），`chat_provider` 改成 `"claude"`，重開伺服器。
+`.env` 不會上傳 GitHub。模型和「想多久」在 `config.json` 的 `chat_model`、`chat_effort`。
+
+不管用哪一種，都另外用**關鍵字**檢查需要照服員注意的話（胸痛、跌倒、不想活了…），模型漏掉也會提醒。
+
+---
+
 ## 設定（config.json）
 
 | 設定 | 預設 | 說明 |
@@ -287,6 +331,12 @@ voice.onText((text) => { /* 指令以外的話 */ return true; });
 | `asr` | `true` | 語音辨識（用說的操作遊戲）。不需要時改 `false`，就不會載入模型 |
 | `asr_model` | `"small"` | Whisper 模型大小。有 NVIDIA 顯示卡用 `small`（一句約 0.4 秒）；只有 CPU 建議 `base` |
 | `asr_device` | `"auto"` | `auto`：有 NVIDIA 顯示卡就用；`cpu`：只用 CPU |
+| `chat` | `true` | 每一頁的小寶。改 `false` 就不顯示 |
+| `chat_provider` | `"local"` | 小寶的大腦：`local` 本機模型（Ollama，不用金鑰）；`claude` Claude API（要金鑰） |
+| `local_model` | `"qwen2.5:7b"` | 本機模型的名稱（要先 `ollama pull`） |
+| `ollama_url` | `"http://127.0.0.1:11434"` | Ollama 的位址 |
+| `chat_model` | `"claude-opus-5-5"` | 聊天用的 Claude 模型 |
+| `chat_effort` | `"low"` | 想多久：`low` 回得最快；`medium`、`high` 比較深入但比較慢 |
 | `port` | `8800` | 網頁的連接埠 |
 
 改完 `config.json`、`cards.json`、`robot_actions.json` 都要**重開伺服器**。

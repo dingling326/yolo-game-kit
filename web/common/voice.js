@@ -61,7 +61,8 @@ function speak(text) {
   const ends = start + estimateMs(text);
   speakingUntil = ends;
   u.onend = () => {
-    if (speakingUntil === ends && !speechSynthesis.pending) speakingUntil = performance.now() + AFTER_SPEAK_MS;
+    // 唸完了：可以提早恢復聽。只能「提早」不能「延後」——估計的時間已經過了、長輩已經開口時，延後會把他的話切掉
+    if (speakingUntil === ends && !speechSynthesis.pending) speakingUntil = Math.min(speakingUntil, performance.now() + AFTER_SPEAK_MS);
   };
   speechSynthesis.speak(u);
 }
@@ -84,6 +85,9 @@ const state = {
   on: false,           // 使用者有沒有開語音
   mode: 'off',         // off／listening（聽）／hearing（有人在說）／thinking（辨識中）／error
   extraWords: [],
+  strict: false,       // 指令要整句話差不多就是指令才算（聊天時用）
+  capture: null,       // 接管：{commands, onText}，開著的時候遊戲的指令和 onText 都不會收到
+  fallback: null,      // 這一頁的指令和 onText 都不處理的話，交給它（跟小寶聊天）
   commands: [],
   textHandlers: [],
   ui: null,
@@ -224,12 +228,25 @@ async function recognise(chunks, rate) {
 /** 指令比對：遊戲自己加的指令優先，再來是內建指令，最後交給 onText */
 function handle(text) {
   const t = norm(text);
+  // 被接管（例如跟小寶聊天的視窗開著）：只認接管者的指令和「回大廳」（整句話就是指令才算），其他的話都交給接管者
+  if (state.capture) {
+    const whole = (p) => t.length <= norm(p).length + 2 && t.includes(norm(p));
+    for (const c of [...state.capture.commands, BUILTIN[0]]) {
+      if (c.phrases.some(whole) && c.run(text) !== false) return true;
+    }
+    return !!state.capture.onText(text);
+  }
+  // 嚴格模式：整句話差不多就是指令才算，「我年輕時開始學做菜」不會按到「開始」。
+  // 有「其他的話交給小寶」（fallback）時一定是嚴格模式：長輩什麼都可能說
+  const strict = state.strict || !!state.fallback;
+  const hit = (p) => (strict ? t.length <= norm(p).length + 2 && t.includes(norm(p)) : t.includes(norm(p)));
   for (const c of [...state.commands, ...BUILTIN]) {
-    if (c.phrases.some((p) => t.includes(norm(p)))) {
+    if (c.phrases.some(hit)) {
       if (c.run(text) !== false) return true;
     }
   }
   for (const h of state.textHandlers) if (h(text)) return true;
+  if (state.fallback) return !!state.fallback(text);    // 這一頁不處理的話：交給小寶
   return false;
 }
 
@@ -264,7 +281,7 @@ export const voice = {
   async start() {
     if (state.on) return;
     state.on = true;
-    try { localStorage.setItem('voice-on', '1'); } catch {}
+    try { localStorage.setItem('voice-on', '1'); sessionStorage.removeItem('voice-off'); } catch {}
     setMode('listening');
     try {
       if (!ctx) await startMic();
@@ -272,16 +289,43 @@ export const voice = {
     } catch (e) {
       state.on = false;
       setMode('error', e.name === 'NotAllowedError' ? '瀏覽器沒有允許使用麥克風' : '找不到麥克風');
+      return;
     }
+    if (ctx.state === 'running') { fireStarted(); return; }
+    // 瀏覽器規定：使用者點過畫面之前，不能開聲音。等第一次點畫面（任何地方）再開
+    setMode('off', '點一下畫面任何地方，就會開始聽');
+    const go = () => ctx?.resume().then(() => { if (state.on) { setMode('listening'); fireStarted(); } });
+    window.addEventListener('pointerdown', go, { once: true, capture: true });
+    window.addEventListener('keydown', go, { once: true, capture: true });
+  },
+  /** 跟著網頁一起開始聽（照服員在這個分頁按麥克風關掉過，就不自動開） */
+  autoStart() {
+    let off = false;
+    try { off = sessionStorage.getItem('voice-off') === '1'; } catch {}
+    if (!off && !state.on) voice.start();
+  },
+  /** 麥克風真的開始收音的時候呼叫 fn（已經開始了就馬上呼叫） */
+  onStarted(fn) {
+    if (started) fn(); else startedFns.push(fn);
   },
   stop() {
     state.on = false;
-    try { localStorage.setItem('voice-on', '0'); } catch {}
+    try { localStorage.setItem('voice-on', '0'); sessionStorage.setItem('voice-off', '1'); } catch {}
     stopMic();
     setMode('off');
   },
   /** 這一頁可能會聽到的詞（例如圖卡名稱），辨識會準很多 */
   words(list) { state.extraWords = [...list]; },
+  /**
+   * 接管語音：之後聽到的話都交給 onText（遊戲的指令不會被按到），commands 是接管時還要認的指令。
+   * 跟小寶聊天的視窗開著的時候用；release() 還回去
+   */
+  capture(commands, onText) { state.capture = { commands, onText }; },
+  release() { state.capture = null; },
+  /** 這一頁的指令和 onText 都不處理的話，交給 handler（回傳 true 表示處理了）。設了之後指令一律是嚴格模式 */
+  fallback(handler) { state.fallback = handler; },
+  /** 嚴格指令：整句話差不多就是指令才算（聊天這種「什麼都可能說」的頁面用） */
+  strictCommands(on = true) { state.strict = on; },
   /** 加一個指令：phrases 裡任何一個詞出現在句子裡就執行 run(句子)。run 回傳 false 表示「這次不算」 */
   command(phrases, run) { state.commands.push({ phrases, run }); },
   /** 指令以外的話：handler(句子) 回傳 true 表示處理了 */
@@ -297,6 +341,14 @@ export const voice = {
   },
   get listening() { return state.on; },
 };
+
+let started = false;
+const startedFns = [];
+function fireStarted() {
+  if (started) return;
+  started = true;
+  for (const fn of startedFns.splice(0)) { try { fn(); } catch {} }
+}
 
 let mounted = false;
 /** 在頁面放上麥克風按鈕。ui.js 的 mountTopbar 會自動呼叫，大廳也會呼叫 */

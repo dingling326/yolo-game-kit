@@ -401,14 +401,14 @@ function finish(tooLong = false) {
   setTimeout(() => robot.nod(), 1500);
 }
 
-function togglePause() {
+function togglePause(quiet = false) {
   if (state !== 'playing') return;
   if (pausedAt === null) {
     pausedAt = performance.now();
     $('pause').textContent = '繼續';
     $('tag').textContent = '休息中';
     clearTalk();
-    talk('我們休息一下，準備好了再繼續。');
+    if (!quiet) talk('我們休息一下，準備好了再繼續。');
   } else {
     pausedTotal += performance.now() - pausedAt;
     pausedAt = null;

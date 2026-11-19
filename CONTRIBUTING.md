@@ -13,7 +13,7 @@
 | | `web/common/style.css`（所有遊戲共用的樣式） |
 | | `web/index.html`（大廳）、`web/cards/print.html`（列印圖卡） |
 | **開發** | `web/games/<遊戲>/game.js`（遊戲規則、判斷、計分、難度） |
-| | `web/common/pose.js`、`web/common/ui.js`、`web/common/voice.js`（語音） |
+| | `web/common/pose.js`、`web/common/ui.js`、`web/common/voice.js`（語音）、`web/common/chat.js`（跟小寶聊天） |
 | | `pose_service/`（Python：辨識、LLM、紀錄）、`tools/`（訓練模型）、`tests/` |
 | | `cards.json`、`config.json`、`robot_actions.json`、`requirements.txt` |
 
@@ -48,6 +48,9 @@
 | `rps` 猜拳 | `task` `hold` `seen` `you` `bot` `you-pts` `bot-pts` `result` `history` `start` | `#result.win`、`#result.lose`；`#history` 裡的 `span.w`、`span.l` |
 | `seated-exercise` 體操 | `task` `task-card` `sub` `hint` `hold` `phase` `level` `steps` `start` `skip` | `#task-card.flash`；`#steps` 裡的 `li.now`、`li.done` |
 | `_template` 範本 | `count` `debug` `reset` | |
+
+小寶是每一頁都有的元件（`chat.js` 產生，跟著網頁一起啟動），樣式在 `web/common/style.css` 的 `.chat-*`；它不用 id，不會跟遊戲的 id 衝突。
+語音會先給遊戲（`voice.command`、`voice.onText`），遊戲不處理的話才交給小寶；所以遊戲要聽的話，記得在 `onText` 回傳 `true`。
 
 `card-quiz` 的卡片圖片是 `game.js` 產生的元素，樣式可以在 `style.css` 改：`.big-img`（題目的大圖）、`.mem-img`（記憶題）、`.slot`（還沒拿的位置）、`.mark`（？和 ✓）、`.thumb`（小圖）。
 

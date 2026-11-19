@@ -12,6 +12,7 @@
   GET  /ws               WebSocket：每一張畫面送一則 {"type": "pose", "people": [...], "cards": [...], "hands": [...]}，
                          機器人動作送 {"type": "robot", ...}
   POST /api/robot        叫機器人做事 {"action": "say", "text": "..."}
+  POST /api/chat         跟機器人聊天：送 {"messages": [...], "name": "張爺爺", "page": "圖卡問答"}，回傳 {"ok": true, "reply": "...", "alert": false}
   POST /api/asr          語音辨識：送 16 kHz 單聲道 WAV（?prompt=這頁可能會聽到的詞），回傳 {"ok": true, "text": "..."}
 
 攝影機、YOLO、圖卡辨識在背景執行緒跑，網頁伺服器在 asyncio 迴圈跑，用 call_soon_threadsafe 把結果交過來。
@@ -27,7 +28,7 @@ from types import SimpleNamespace
 import cv2
 from aiohttp import web
 
-from . import asr, config, hands, keypoints
+from . import asr, chat, config, hands, keypoints
 from .cards import CardDetector, DemoCards, load_cards, marker_png
 from .detector import DemoPose, YoloPose
 from .objects import CombinedCards, YoloObjects
@@ -156,6 +157,7 @@ async def status(request):
         "modules": {k: m.label for k, m in app.modules.items()},
         "show_video": app.cfg.get("show_video", True),
         "asr": app.asr.label if app.asr else None,
+        "chat": app.chat.label if app.chat else None,
     })
 
 
@@ -263,12 +265,35 @@ async def asr_api(request):
     return web.json_response({"ok": True, **out})
 
 
-def build_app(cfg, source, detector, robot, notice=None, modules=None, card_list=None, asr_engine=None):
+async def chat_api(request):
+    app = request.app[CTX]
+    if app.chat is None:
+        return web.json_response({"ok": False, "error": "聊天功能沒有開（config.json 的 chat）"})
+    try:
+        body = await request.json()
+    except ValueError:
+        return web.json_response({"ok": False, "error": "要送 JSON"}, status=400)
+    try:
+        # 等 Claude 回答要幾秒，放到執行緒做，不卡住影像串流。對話內容不寫進紀錄
+        out = await asyncio.get_running_loop().run_in_executor(
+            None, app.chat.reply, body.get("messages") or [], str(body.get("name") or ""), str(body.get("page") or ""))
+    except chat.ChatUnavailable as e:
+        return web.json_response({"ok": False, "error": str(e)})
+    except ValueError as e:
+        return web.json_response({"ok": False, "error": str(e)}, status=400)
+    except Exception as e:
+        log.exception("聊天失敗")
+        return web.json_response({"ok": False, "error": f"聊天失敗：{e}"})
+    return web.json_response({"ok": True, **out})
+
+
+def build_app(cfg, source, detector, robot, notice=None, modules=None, card_list=None, asr_engine=None, chat_bot=None):
     """modules：其他辨識模組 {"cards": ..., "hands": ...}（沒給＝只認姿勢）；card_list：圖卡清單，沒給就讀 cards.json"""
     modules = modules or {}
     app = web.Application(middlewares=[no_cache])
     ctx = app[CTX] = SimpleNamespace(cfg=cfg, source=source, detector=detector, robot=robot,
                                      guard=RobotGuard(robot), notice=notice, hub=None, modules=modules, asr=asr_engine,
+                                     chat=chat_bot,
                                      card_list=card_list if card_list is not None else load_cards())
     app.router.add_get("/", index)
     app.router.add_get("/api/games", games)
@@ -279,6 +304,7 @@ def build_app(cfg, source, detector, robot, notice=None, modules=None, card_list
     app.router.add_get("/ws", websocket)
     app.router.add_post("/api/robot", robot_api)
     app.router.add_post("/api/asr", asr_api)
+    app.router.add_post("/api/chat", chat_api)
     app.router.add_static("/common", WEB / "common")
     app.router.add_static("/games", WEB / "games")
     app.router.add_static("/cards", WEB / "cards")
@@ -342,6 +368,12 @@ def main(argv=None):
             asr_engine = asr.WhisperASR(cfg["asr_model"], cfg["asr_device"])
         except asr.AsrUnavailable as e:
             notice = (notice + "；" if notice else "") + f"語音辨識關閉：{e}"
+    chat_bot = None
+    if cfg.get("chat"):
+        try:
+            chat_bot = chat.make_bot(cfg)
+        except chat.ChatUnavailable as e:
+            notice = (notice + "；" if notice else "") + f"聊天功能關閉：{e}"
     try:
         robot = make_robot(cfg)
     except Exception as e:
@@ -357,7 +389,7 @@ def main(argv=None):
         log.info("隱私模式：網頁只看得到骨架和圖卡框，不送出影像")
     url = f"http://{'127.0.0.1' if cfg['host'] in ('0.0.0.0', '127.0.0.1') else cfg['host']}:{cfg['port']}"
     print(f"\n  打開瀏覽器：{url}\n  要停止請按 Ctrl+C（或 VS Code 的紅色方塊）\n", flush=True)
-    web.run_app(build_app(cfg, source, detector, robot, notice, modules, card_list, asr_engine),
+    web.run_app(build_app(cfg, source, detector, robot, notice, modules, card_list, asr_engine, chat_bot),
                 host=cfg["host"], port=cfg["port"],
                 print=None, access_log=None)
     return 0
