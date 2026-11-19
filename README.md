@@ -270,6 +270,21 @@ voice.onText((text) => { /* 指令以外的話 */ return true; });
 
 ---
 
+## 跟機器人聊天（Claude）
+
+大廳的「跟機器人聊天」：長輩用說的（左下角 🎤），機器人「小寶」回答。
+
+- 聲音在這台電腦辨識（Whisper），**只有辨識出來的文字**會送到 Anthropic 的 Claude 產生回答，不會存檔
+- 回答一到兩句、慢慢唸；長輩一陣子沒說話，會溫和地問一句（最多兩次）
+- 「換個話題」會挑懷舊的話題（家鄉、拿手菜、老歌…）；說「再見」或「結束」就結束
+- 長輩提到身體不舒服、跌倒、不想活了等，畫面上方會出現「請照服員注意」；不給醫療、用藥建議
+- 照服員設定可以填「怎麼稱呼長輩」，也可以用打字的
+
+**要先設定金鑰**：把 `.env.example` 複製成 `.env`，填上 `ANTHROPIC_API_KEY`（到 console.anthropic.com 建立），重開伺服器。
+`.env` 不會上傳 GitHub。模型和「想多久」在 `config.json` 的 `chat_model`、`chat_effort`。
+
+---
+
 ## 設定（config.json）
 
 | 設定 | 預設 | 說明 |
@@ -287,6 +302,9 @@ voice.onText((text) => { /* 指令以外的話 */ return true; });
 | `asr` | `true` | 語音辨識（用說的操作遊戲）。不需要時改 `false`，就不會載入模型 |
 | `asr_model` | `"small"` | Whisper 模型大小。有 NVIDIA 顯示卡用 `small`（一句約 0.4 秒）；只有 CPU 建議 `base` |
 | `asr_device` | `"auto"` | `auto`：有 NVIDIA 顯示卡就用；`cpu`：只用 CPU |
+| `chat` | `true` | 跟機器人聊天（要設定 `ANTHROPIC_API_KEY`）。不需要時改 `false` |
+| `chat_model` | `"claude-opus-5-5"` | 聊天用的 Claude 模型 |
+| `chat_effort` | `"low"` | 想多久：`low` 回得最快；`medium`、`high` 比較深入但比較慢 |
 | `port` | `8800` | 網頁的連接埠 |
 
 改完 `config.json`、`cards.json`、`robot_actions.json` 都要**重開伺服器**。

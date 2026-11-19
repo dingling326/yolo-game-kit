@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>跟機器人聊天</title>
+<link rel="stylesheet" href="/common/style.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="elder">
+<!-- 有 id 的元素 game.js 會用到：可以搬位置、改樣式，但不要刪除或改名。清單在 CONTRIBUTING.md -->
+<main class="game">
+  <section class="talk" id="talk">
+    <div class="alert" id="alert" hidden>
+      <div><b>請照服員注意</b><span id="alert-text"></span></div>
+      <button class="btn" id="alert-ok">知道了</button>
+    </div>
+    <div class="bot" id="bot" aria-hidden="true">
+      <div class="antenna"></div>
+      <div class="head"><i class="eye"></i><i class="eye"></i><i class="mouth"></i></div>
+    </div>
+    <div class="say" id="say">按「開始聊天」，就可以跟我聊天</div>
+    <div class="status" id="status">說話的時候，左下角的麥克風要是綠色的</div>
+  </section>
+
+  <aside class="panel">
+    <div class="buttons">
+      <button class="btn" id="start">開始聊天</button>
+      <button class="btn secondary" id="skip" disabled>換個話題</button>
+      <button class="btn secondary" id="repeat" disabled>再說一次</button>
+      <button class="btn secondary" id="end" disabled>結束</button>
+    </div>
+
+    <div class="card">
+      <h2>剛剛聊了什麼</h2>
+      <div class="log" id="log"><p class="muted">還沒開始</p></div>
+    </div>
+
+    <details class="card setup" id="setup">
+      <summary>照服員設定</summary>
+      <label class="field">怎麼稱呼長輩（例如：張爺爺）
+        <input id="name" type="text" maxlength="20" placeholder="不填就不稱呼名字">
+      </label>
+      <label class="field">用打字的（沒有麥克風、或幫長輩轉達）
+        <span class="type-row"><input id="text" type="text" maxlength="200" placeholder="打字後按送出"><button class="btn secondary" id="send">送出</button></span>
+      </label>
+      <p class="muted">聲音只在這台電腦辨識；辨識出來的文字會送到 Claude（Anthropic）產生回答，不會存檔。
+        長輩提到身體不舒服、跌倒、不想活了等，畫面上方會出現「請照服員注意」。</p>
+      <p class="setup-note" id="error" hidden></p>
+    </details>
+
+    <div class="card" id="robot"></div>
+  </aside>
+</main>
+<script type="module" src="game.js"></script>
+</body>
+</html>

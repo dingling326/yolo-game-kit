@@ -24,9 +24,26 @@ DEFAULTS = {
     "asr": True,               # 語音辨識（網頁可以用說的操作）。不需要時改 false，就不會載入模型
     "asr_model": "small",      # Whisper 模型：tiny／base／small／medium。只有 CPU 的電腦建議 base
     "asr_device": "auto",      # auto：有 NVIDIA 顯示卡就用；cpu：只用 CPU
+    "chat": True,              # 跟機器人聊天（用 Claude API，要設定 ANTHROPIC_API_KEY）。不需要時改 false
+    "chat_model": "claude-opus-5-5",
+    "chat_effort": "low",      # 想多久：low 回得最快，聊天夠用；medium／high 比較深入但比較慢
     "show_video": True,        # false：隱私模式，網頁只看得到骨架和圖卡框，伺服器不送出影像
     "robot": {"mode": "mock", "gateway": "http://127.0.0.1:8080", "robot_id": "zenbo-01"},
 }
+
+
+def load_dotenv(path=ROOT / ".env"):
+    """讀專案資料夾的 .env（例如 ANTHROPIC_API_KEY=...）。.env 不會上傳 GitHub；已經有的環境變數不會被蓋掉"""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key, value = key.strip(), value.strip().strip('"').strip("'")
+        if key and value and not os.environ.get(key):
+            os.environ[key] = value
 
 
 def load(argv=None):
@@ -38,6 +55,7 @@ def load(argv=None):
     p.add_argument("--robot", dest="robot_mode", choices=["mock", "platform"])
     p.add_argument("--hide-video", action="store_true", help="隱私模式：不送出影像，只送骨架和圖卡")
     args = p.parse_args(argv)
+    load_dotenv()
 
     cfg = json.loads(json.dumps(DEFAULTS))
     path = Path(args.config)

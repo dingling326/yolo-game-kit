@@ -1,0 +1,60 @@
+/* chat 這個遊戲自己的樣式（UI 負責）。共用的樣式在 /common/style.css */
+
+/* 左邊：機器人的臉＋現在說的話（深底大字，長輩看得清楚） */
+.talk {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 22px;
+  min-height: 560px; padding: 96px 28px 110px; border-radius: var(--radius); background: #111827; color: #fff; text-align: center;
+  /* 上面留給照服員提醒、下面留給左下角的麥克風按鈕，才不會擋到機器人說的話 */
+}
+.say { font-size: 44px; font-weight: 800; line-height: 1.35; max-width: 18em; min-height: 2.7em; word-break: keep-all; overflow-wrap: anywhere; }
+.status { font-size: 26px; font-weight: 700; color: #ffd54a; min-height: 1.4em; }
+
+/* 機器人的臉：用 CSS 畫，不用表情符號 */
+.bot { position: relative; width: 220px; height: 190px; }
+.bot .antenna { position: absolute; left: 50%; top: 0; width: 8px; height: 30px; margin-left: -4px; background: #9fb4d9; border-radius: 4px; }
+.bot .antenna::after { content: ""; position: absolute; left: 50%; top: -14px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: #ffd54a; }
+.bot .head { position: absolute; inset: 26px 0 0; border-radius: 48px; background: #dbe6fb; box-shadow: inset 0 -10px 0 rgba(0, 0, 0, .08);
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; place-items: center; padding: 22px 30px 14px; }
+.bot .eye { width: 34px; height: 34px; border-radius: 50%; background: #1f2a44; transition: height .15s, border-radius .15s; }
+.bot .mouth { grid-column: 1 / 3; width: 72px; height: 14px; border-radius: 0 0 40px 40px; background: #1f2a44; }
+/* 狀態：聽（眼睛發亮）、想（眼睛瞇起來）、說話（嘴巴動） */
+.talk[data-mode="listening"] .eye { background: #1f9d63; box-shadow: 0 0 0 6px rgba(63, 207, 142, .35); }
+.talk[data-mode="thinking"] .eye { height: 10px; border-radius: 6px; }
+.talk[data-mode="thinking"] .antenna::after { animation: blink 1s infinite; }
+.talk[data-mode="speaking"] .mouth { animation: speak .35s ease-in-out infinite alternate; }
+@keyframes speak { from { height: 10px; } to { height: 34px; border-radius: 0 0 40px 40px; } }
+@keyframes blink { 50% { opacity: .2; } }
+
+/* 給照服員的提醒：畫面最上面的黃色橫條 */
+.alert { position: absolute; left: 16px; right: 16px; top: 16px; display: flex; align-items: center; gap: 14px; justify-content: space-between;
+  background: #ffd54a; color: #111827; border-radius: 14px; padding: 12px 16px; text-align: left; font-size: 22px; box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+.alert > div { flex: 1 1 auto; min-width: 0; }
+.alert b { display: block; font-size: 24px; }
+.alert .btn { flex: 0 0 auto; width: auto; background: #111827; color: #fff; }
+
+.buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* 對話紀錄：只放最近幾則，大字 */
+.log { display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; }
+.log .msg { padding: 10px 14px; border-radius: 14px; font-size: 21px; line-height: 1.45; max-width: 92%; }
+.log .msg.user { align-self: flex-end; background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.log .msg.bot { align-self: flex-start; background: var(--surface-2); }
+.log .msg.note { align-self: center; background: none; color: var(--muted); font-size: 17px; padding: 2px; }
+
+/* 照服員設定 */
+.setup summary { cursor: pointer; font-size: 18px; color: var(--muted); }
+.setup .field { display: grid; gap: 6px; margin: 12px 0; font-size: 18px; }
+.setup input[type="text"] { font: inherit; font-size: 20px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--text); min-width: 0; }
+.type-row { display: flex; gap: 8px; }
+.type-row input { flex: 1; }
+.type-row .btn { font-size: 18px; padding: 8px 16px; }
+.setup-note { background: color-mix(in srgb, var(--warn) 18%, var(--surface)); border-radius: 10px; padding: 8px 12px; font-size: 18px; font-weight: 700; }
+
+[hidden] { display: none !important; }
+
+@media (max-width: 860px) { .talk { min-height: 420px; } .say { font-size: 34px; } }
+@media (prefers-reduced-motion: reduce) { .talk[data-mode="speaking"] .mouth, .talk[data-mode="thinking"] .antenna::after { animation: none; } }
+
+/* 右下角的機器人對話框：臉不要被拉長 */
+#robot .robot { align-items: flex-start; }

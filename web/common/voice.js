@@ -84,6 +84,7 @@ const state = {
   on: false,           // 使用者有沒有開語音
   mode: 'off',         // off／listening（聽）／hearing（有人在說）／thinking（辨識中）／error
   extraWords: [],
+  strict: false,       // 指令要整句話差不多就是指令才算（聊天時用）
   commands: [],
   textHandlers: [],
   ui: null,
@@ -224,8 +225,10 @@ async function recognise(chunks, rate) {
 /** 指令比對：遊戲自己加的指令優先，再來是內建指令，最後交給 onText */
 function handle(text) {
   const t = norm(text);
+  // 嚴格模式（聊天頁）：整句話差不多就是指令才算，「我年輕時開始學做菜」不會按到「開始」
+  const hit = (p) => (state.strict ? t.length <= norm(p).length + 2 && t.includes(norm(p)) : t.includes(norm(p)));
   for (const c of [...state.commands, ...BUILTIN]) {
-    if (c.phrases.some((p) => t.includes(norm(p)))) {
+    if (c.phrases.some(hit)) {
       if (c.run(text) !== false) return true;
     }
   }
@@ -282,6 +285,8 @@ export const voice = {
   },
   /** 這一頁可能會聽到的詞（例如圖卡名稱），辨識會準很多 */
   words(list) { state.extraWords = [...list]; },
+  /** 嚴格指令：整句話差不多就是指令才算（聊天這種「什麼都可能說」的頁面用） */
+  strictCommands(on = true) { state.strict = on; },
   /** 加一個指令：phrases 裡任何一個詞出現在句子裡就執行 run(句子)。run 回傳 false 表示「這次不算」 */
   command(phrases, run) { state.commands.push({ phrases, run }); },
   /** 指令以外的話：handler(句子) 回傳 true 表示處理了 */

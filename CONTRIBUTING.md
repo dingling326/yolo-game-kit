@@ -47,6 +47,7 @@
 | `bubble-pop` 戳泡泡 | `task` `hold` `score` `best` `time` `time-text` `start` | |
 | `rps` 猜拳 | `task` `hold` `seen` `you` `bot` `you-pts` `bot-pts` `result` `history` `start` | `#result.win`、`#result.lose`；`#history` 裡的 `span.w`、`span.l` |
 | `seated-exercise` 體操 | `task` `task-card` `sub` `hint` `hold` `phase` `level` `steps` `start` `skip` | `#task-card.flash`；`#steps` 裡的 `li.now`、`li.done` |
+| `chat` 跟機器人聊天 | `talk` `bot` `say` `status` `alert` `alert-text` `alert-ok` `start` `skip` `repeat` `end` `log` `setup` `name` `text` `send` `error` `robot` | `#talk[data-mode]`（idle／listening／thinking／speaking）；`#log` 裡的 `.msg.user`／`.msg.bot`／`.msg.note` |
 | `_template` 範本 | `count` `debug` `reset` | |
 
 `card-quiz` 的卡片圖片是 `game.js` 產生的元素，樣式可以在 `style.css` 改：`.big-img`（題目的大圖）、`.mem-img`（記憶題）、`.slot`（還沒拿的位置）、`.mark`（？和 ✓）、`.thumb`（小圖）。
